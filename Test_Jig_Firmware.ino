@@ -39,10 +39,8 @@ unsigned long period;
 unsigned long stepsToHome = 0;
 unsigned long testStart;
 uint8_t i, j;
-uint8_t posCounter[5] = {
-  0,0,0,0,0};
-uint8_t consecutiveReads[5] = {
-  0,0,0,0,0};
+uint8_t posCounter[5] = {0,0,0,0,0};
+uint8_t consecutiveReads[5] = {0,0,0,0,0};:
 unsigned long stepperCount[5][10];
 char port;
 char state; 
@@ -280,7 +278,6 @@ void loop()
                 }
               }
             }
-            Serial.println(stepsToHome);
           }
         }
         finished();
