@@ -1,5 +1,6 @@
 #include "digipot.h"
 #include "pins.h"
+#include "rambo.h"
 #include <SPI.h>
 
 #define DEBUG 1 //send debug info over serial about what we are doing
@@ -60,10 +61,10 @@ void setup()
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
 
-  ramboEnable(0);
-  setMicroSteps(16);
+  rambo::portEnable(0);
+  rambo::portSetMicroSteps(16);
   //init digipots
-  digipotInit();
+  digipot::init();
 }
 
 void loop()
@@ -141,35 +142,35 @@ void loop()
           DEBUG_PRINT("Homing at step frequency (hz) : ", stepFrequency);
           period = 1000000/stepFrequency;
           DEBUG_PRINT("Stepping every (us) : ", period);
-          ramboEnable(1);
+          rambo::portEnable(1);
           stepsToHome = 0;
           lastMicros = micros();
 
           //if we are already at the endstop move upwards until we are not
           if(digitalRead(ENDSTOP_PIN)){
-            ramboDirection(UP);
+            rambo::portDirection(UP);
             while(digitalRead(ENDSTOP_PIN) || stepsToHome <=1000){
               if(!digitalRead(ENDSTOP_PIN)) stepsToHome++;
               if ((micros()-lastMicros) >= period) 
               { 
-                ramboStep(); 
+                rambo::portStep(); 
                 lastMicros = micros();
               } 
             }
           }
           stepsToHome =0;
-          ramboDirection(DOWN);
+          rambo::portDirection(DOWN);
           while(!digitalRead(ENDSTOP_PIN)){
             if ((micros()-lastMicros) >= period) 
             { 
-              ramboStep(); 
+              rambo::portStep(); 
               lastMicros = micros();
               stepsToHome++;
             }
           }
           Serial.println(stepsToHome);
         }
-        ramboEnable(0);
+        rambo::portEnable(0);
         finished();
         break;
       }
@@ -196,7 +197,7 @@ void loop()
         {
           pin = Serial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
-          setMicroSteps(pin);
+          rambo::portSetMicroSteps(pin);
         }
         finished();
         break;
@@ -306,30 +307,30 @@ void loop()
             DEBUG_PRINT("Clamp step frequency (hz) : ", stepFrequency);
             period = 1000000/stepFrequency;
             DEBUG_PRINT("Stepping every (us) : ", period);
-            ramboDirection(UP);
+            rambo::portDirection(UP);
             switch (Serial.read()) {
               //Up
             case 'U' : 
               {
                 DEBUG_PRINT("Going up.",' ');
-                ramboDirection(UP);
+                rambo::portDirection(UP);
                 break;
               }
               //Down
             case 'D' : 
               {
                 DEBUG_PRINT("Going down.",' ');
-                ramboDirection(DOWN);
+                rambo::portDirection(DOWN);
                 break;
               }
             }
-            ramboEnable(1);
+            rambo::portEnable(1);
             stepsToHome = 0;
             lastMicros = micros();
             while(stepsToHome <= stepCount){
               if ((micros()-lastMicros) >= period) 
               { 
-                ramboStep(); 
+                rambo::portStep(); 
                 lastMicros = micros();
                 stepsToHome++;
               }
@@ -371,87 +372,6 @@ uint8_t getPin(char c){
   case 'L': 
     return PINL;
   }
-}
-
-inline void ramboStep(){
-  PORTC = B11111111;
-  delayMicroseconds(1);
-  PORTC = B00000000;
-  return;
-}
-
-inline void ramboDirection(uint8_t dir){
-  if(dir)PORTL = B11111111;
-  else PORTL = B00000000;
-  return;
-}
-
-inline void ramboEnable(uint8_t en){
-  if(en)PORTA = B00000000;
-  else PORTA = B11111111;
-  return;
-}
-
-void setMicroSteps(uint8_t ms){
-  switch(ms) {
-  case 1 : 
-    {
-      digitalWrite(X_MS1_PIN, LOW);
-      digitalWrite(X_MS2_PIN, LOW);
-      digitalWrite(Y_MS1_PIN, LOW);
-      digitalWrite(Y_MS2_PIN, LOW);
-      digitalWrite(Z_MS1_PIN, LOW);
-      digitalWrite(Z_MS2_PIN, LOW);
-      digitalWrite(E0_MS1_PIN, LOW);
-      digitalWrite(E0_MS2_PIN, LOW);
-      digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, LOW);
-      break;
-    }
-  case 2 : 
-    {
-      digitalWrite(X_MS1_PIN, HIGH);
-      digitalWrite(X_MS2_PIN, LOW);
-      digitalWrite(Y_MS1_PIN, HIGH);
-      digitalWrite(Y_MS2_PIN, LOW);
-      digitalWrite(Z_MS1_PIN, HIGH);
-      digitalWrite(Z_MS2_PIN, LOW);
-      digitalWrite(E0_MS1_PIN, HIGH);
-      digitalWrite(E0_MS2_PIN, LOW);
-      digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, LOW);
-      break;   
-    }
-  case 4 : 
-    {
-      digitalWrite(X_MS1_PIN, LOW);
-      digitalWrite(X_MS2_PIN, HIGH);
-      digitalWrite(Y_MS1_PIN, LOW);
-      digitalWrite(Y_MS2_PIN, HIGH);
-      digitalWrite(Z_MS1_PIN, LOW);
-      digitalWrite(Z_MS2_PIN, HIGH);
-      digitalWrite(E0_MS1_PIN, LOW);
-      digitalWrite(E0_MS2_PIN, HIGH);
-      digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, HIGH);
-      break;  
-    }
-  case 16 : 
-    {
-      digitalWrite(X_MS1_PIN, HIGH);
-      digitalWrite(X_MS2_PIN, HIGH);
-      digitalWrite(Y_MS1_PIN, HIGH);
-      digitalWrite(Y_MS2_PIN, HIGH);
-      digitalWrite(Z_MS1_PIN, HIGH);
-      digitalWrite(Z_MS2_PIN, HIGH);
-      digitalWrite(E0_MS1_PIN, HIGH);
-      digitalWrite(E0_MS2_PIN, HIGH);
-      digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, HIGH);
-      break;   
-    }
-
-  } 
 }
 
 void finished(void){

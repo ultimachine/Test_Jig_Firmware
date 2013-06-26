@@ -1,10 +1,11 @@
 #ifndef DIGIPOT_H
 #define DIGIPOT_H
 
-void digipotWrite(int address, int value);
+#include <Arduino.h>
 
-void digipotInit();
-
-void digipotSetVoltage(int driver, int current);
-
+namespace digipot{
+  void write(byte address, byte value);
+  void init();
+  void setVoltage(byte driver, byte current);
+}
 #endif
