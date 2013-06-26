@@ -1,8 +1,6 @@
-#include <Arduino.h>
 #include <SPI.h>
+#include "pins.h"
 
-
-#define DIGIPOTSS_PIN 38
 #define DIGIPOT_CHANNELS {4,5,3,0,1}
 
 inline void digipotWrite(int address, int value) // From Arduino DigitalPotControl example

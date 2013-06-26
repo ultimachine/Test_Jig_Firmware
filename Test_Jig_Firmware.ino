@@ -1,21 +1,9 @@
 #include "digipot.h"
+#include "pins.h"
 #include <SPI.h>
 
 #define DEBUG 1 //send debug info over serial about what we are doing
 #define DEBOUNCE 3
-
-#define ENDSTOP_PIN 10
-#define POWER_PIN 3
-#define X_MS1_PIN 40
-#define X_MS2_PIN 41
-#define Y_MS1_PIN 69
-#define Y_MS2_PIN 39
-#define Z_MS1_PIN 68
-#define Z_MS2_PIN 67
-#define E0_MS1_PIN 65
-#define E0_MS2_PIN 66
-#define E1_MS1_PIN 63
-#define E1_MS2_PIN 64
 
 #if DEBUG == 0
 #define DEBUG_PRINT(x,y) ;;
@@ -40,7 +28,7 @@ unsigned long stepsToHome = 0;
 unsigned long testStart;
 uint8_t i, j;
 uint8_t posCounter[5] = {0,0,0,0,0};
-uint8_t consecutiveReads[5] = {0,0,0,0,0};:
+uint8_t consecutiveReads[5] = {0,0,0,0,0};
 unsigned long stepperCount[5][10];
 char port;
 char state; 

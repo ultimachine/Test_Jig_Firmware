@@ -1,0 +1,13 @@
+#define ENDSTOP_PIN 10
+#define POWER_PIN 3
+#define X_MS1_PIN 40
+#define X_MS2_PIN 41
+#define Y_MS1_PIN 69
+#define Y_MS2_PIN 39
+#define Z_MS1_PIN 68
+#define Z_MS2_PIN 67
+#define E0_MS1_PIN 65
+#define E0_MS2_PIN 66
+#define E1_MS1_PIN 63
+#define E1_MS2_PIN 64
+#define DIGIPOTSS_PIN 38
