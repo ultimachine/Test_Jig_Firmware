@@ -218,32 +218,15 @@ void loop()
               { 
                 lastMicros = micros();
                 uint8_t sample = PINJ;
-                //for(i=0; i<=4; i++){
-                if(((lastPortSample ^ sample) & B00000100) && consecutiveReads[0] >= DEBOUNCE){
-                  posCounter[0]++;
-                  consecutiveReads[0] = 0;
-                }
-                if(((lastPortSample ^ sample) & B00001000) && consecutiveReads[1] >= DEBOUNCE){
-                  posCounter[1]++;
-                  consecutiveReads[1] = 0;
-                }
-                if(((lastPortSample ^ sample) & B00010000) && consecutiveReads[2] >= DEBOUNCE){
-                  posCounter[2]++;
-                  consecutiveReads[2] = 0;
-                }
-                if(((lastPortSample ^ sample) & B00100000) && consecutiveReads[3] >= DEBOUNCE){
-                  posCounter[3]++;
-                  consecutiveReads[3] = 0;
-                }
-                if(((lastPortSample ^ sample) & B01000000) && consecutiveReads[4] >= DEBOUNCE){
-                  posCounter[4]++;
-                  consecutiveReads[4] = 0;
-                }
-                for(i=0; i<=4; i++) {
+                for(i=0; i<=4; i++){
+                  if(((lastPortSample ^ sample) & (B00000100<<i)) && consecutiveReads[i] >= DEBOUNCE){
+                    posCounter[i]++;
+                    consecutiveReads[i] = 0;
+                  }
                   stepperCount[i][posCounter[i]]++;
                   consecutiveReads[i]++;
                 }
-                
+
                 lastPortSample = PINJ;
               }
             }
@@ -254,7 +237,7 @@ void loop()
                   Serial.print("{");
                   Serial.print(stepperCount[i][j]);
                   Serial.print(",");
-                  }
+                }
                 else if(j==9){
                   Serial.print(stepperCount[i][j]);
                   Serial.println("}");
@@ -452,6 +435,7 @@ inline void setMicroSteps(uint8_t ms){
 void finished(void){
   Serial.println("ok");
 }
+
 
 
 
