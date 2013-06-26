@@ -10,6 +10,7 @@ inline void digipotWrite(int address, int value) // From Arduino DigitalPotContr
 #if DIGIPOTSS_PIN > -1
   digitalWrite(DIGIPOTSS_PIN,LOW); // take the SS pin low to select the chip
 ;
+  SPI.transfer(address);
   SPI.transfer(value);
   digitalWrite(DIGIPOTSS_PIN,HIGH); // take the SS pin high to de-select the chip:
 #endif
