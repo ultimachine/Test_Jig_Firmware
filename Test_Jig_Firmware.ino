@@ -74,7 +74,7 @@ void setup()
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
 
-  ramboEnable(1);
+  ramboEnable(0);
   setMicroSteps(16);
   //init digipots
   digipotInit();
@@ -155,10 +155,24 @@ void loop()
           DEBUG_PRINT("Homing at step frequency (hz) : ", stepFrequency);
           period = 1000000/stepFrequency;
           DEBUG_PRINT("Stepping every (us) : ", period);
-          ramboDirection(DOWN);
           ramboEnable(1);
           stepsToHome = 0;
           lastMicros = micros();
+
+          //if we are already at the endstop move upwards until we are not
+          if(digitalRead(ENDSTOP_PIN)){
+            ramboDirection(UP);
+            while(digitalRead(ENDSTOP_PIN) || stepsToHome <=1000){
+              if(!digitalRead(ENDSTOP_PIN)) stepsToHome++;
+              if ((micros()-lastMicros) >= period) 
+              { 
+                ramboStep(); 
+                lastMicros = micros();
+              } 
+            }
+          }
+          stepsToHome =0;
+          ramboDirection(DOWN);
           while(!digitalRead(ENDSTOP_PIN)){
             if ((micros()-lastMicros) >= period) 
             { 
@@ -169,11 +183,13 @@ void loop()
           }
           Serial.println(stepsToHome);
         }
+        ramboEnable(0);
         finished();
         break;
       }
 
-      //Analog Read -> A<pin>
+      //Analog Read
+      //Format: A<pin>
     case 'A' : 
       {
         if(isDigit(Serial.peek()))
@@ -186,7 +202,23 @@ void loop()
         break;
       }
 
-      //Monitor Stepper test -> M<time>F<frequency>
+      //Set Microsteps
+      //Format: U<microsteps>
+    case 'U' : 
+      {
+        if(isDigit(Serial.peek()))
+        {
+          pin = Serial.parseInt();
+          DEBUG_PRINT("setting microsteps : ", pin);
+          setMicroSteps(pin);
+        }
+        finished();
+        break;
+      }
+
+
+      //Monitor Stepper test
+      //Format: M<time>F<frequency>
     case 'M' : 
       {
         if(isDigit(Serial.peek()))
@@ -248,7 +280,6 @@ void loop()
                 }
               }
             }
-
             Serial.println(stepsToHome);
           }
         }
@@ -256,7 +287,8 @@ void loop()
         break;
       }
 
-      //Write PWM -> P<pin>D<duty cycle>
+      //Write PWM
+      //Format: P<pin>D<duty cycle>
     case 'P' : 
       {
         if(isDigit(Serial.peek()))
@@ -275,7 +307,8 @@ void loop()
         break;
       }
 
-      //Clamp board -> C<steps>F<frequency><Direction - D or U>
+      //Clamp board
+      //Format: C<steps>F<frequency><Direction - D or U>
     case 'C' : 
       {
         if(isDigit(Serial.peek()))
@@ -374,7 +407,7 @@ inline void ramboEnable(uint8_t en){
   return;
 }
 
-inline void setMicroSteps(uint8_t ms){
+void setMicroSteps(uint8_t ms){
   switch(ms) {
   case 1 : 
     {
@@ -387,7 +420,8 @@ inline void setMicroSteps(uint8_t ms){
       digitalWrite(E0_MS1_PIN, LOW);
       digitalWrite(E0_MS2_PIN, LOW);
       digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, LOW);   
+      digitalWrite(E1_MS2_PIN, LOW);
+      break;
     }
   case 2 : 
     {
@@ -400,7 +434,8 @@ inline void setMicroSteps(uint8_t ms){
       digitalWrite(E0_MS1_PIN, HIGH);
       digitalWrite(E0_MS2_PIN, LOW);
       digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, LOW);   
+      digitalWrite(E1_MS2_PIN, LOW);
+      break;   
     }
   case 4 : 
     {
@@ -413,7 +448,8 @@ inline void setMicroSteps(uint8_t ms){
       digitalWrite(E0_MS1_PIN, LOW);
       digitalWrite(E0_MS2_PIN, HIGH);
       digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, HIGH);  
+      digitalWrite(E1_MS2_PIN, HIGH);
+      break;  
     }
   case 16 : 
     {
@@ -426,7 +462,8 @@ inline void setMicroSteps(uint8_t ms){
       digitalWrite(E0_MS1_PIN, HIGH);
       digitalWrite(E0_MS2_PIN, HIGH);
       digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, HIGH);   
+      digitalWrite(E1_MS2_PIN, HIGH);
+      break;   
     }
 
   } 
@@ -435,6 +472,7 @@ inline void setMicroSteps(uint8_t ms){
 void finished(void){
   Serial.println("ok");
 }
+
 
 
 
