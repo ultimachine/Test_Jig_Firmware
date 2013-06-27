@@ -43,6 +43,8 @@ void setup()
   //setup pins
   pinMode(ENDSTOP_PIN, INPUT); //Endstop
   digitalWrite(ENDSTOP_PIN,HIGH); //turn on endstop pullups
+  pinMode(START_PIN, INPUT); //Start Pin
+  digitalWrite(START_PIN,HIGH); //Start Pin pullups  
   pinMode(POWER_PIN, OUTPUT); //powersupply pin
 
   //RAMBo
@@ -71,8 +73,13 @@ void setup()
   pinMode(MOS4,INPUT);
   pinMode(MOS5,INPUT);
   pinMode(MOS6,INPUT);
-  
- 
+  digitalWrite(MOS1,HIGH);  
+  digitalWrite(MOS2,HIGH);  
+  digitalWrite(MOS3,HIGH);  
+  digitalWrite(MOS4,HIGH);  
+  digitalWrite(MOS5,HIGH);  
+  digitalWrite(MOS6,HIGH);  
+
  
  
   rambo::portEnable(0);

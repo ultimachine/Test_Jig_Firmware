@@ -1,4 +1,5 @@
 #define ENDSTOP_PIN 10
+#define START_PIN 11
 #define POWER_PIN 3
 #define X_MS1_PIN 40
 #define X_MS2_PIN 41
