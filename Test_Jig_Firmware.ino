@@ -60,7 +60,21 @@ void setup()
   pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
-
+  pinMode(X_REF,INPUT);
+  pinMode(Y_REF,INPUT);
+  pinMode(Z_REF,INPUT);
+  pinMode(E0_REF,INPUT);
+  pinMode(E1_REF,INPUT);
+  pinMode(MOS1,INPUT);
+  pinMode(MOS2,INPUT);
+  pinMode(MOS3,INPUT);
+  pinMode(MOS4,INPUT);
+  pinMode(MOS5,INPUT);
+  pinMode(MOS6,INPUT);
+  
+ 
+ 
+ 
   rambo::portEnable(0);
   rambo::portSetMicroSteps(16);
   //init digipots

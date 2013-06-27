@@ -11,3 +11,16 @@
 #define E1_MS1_PIN 63
 #define E1_MS2_PIN 64
 #define DIGIPOTSS_PIN 38
+#define X_REF A8
+#define Y_REF A6
+#define Z_REF A5
+#define E0_REF A4
+#define E1_REF A3
+#define MOS1 44 //PL5
+#define MOS2 32 //PC5
+#define MOS3 45 //PL4
+#define MOS4 31 //PC6
+#define MOS5 46 //PL3
+#define MOS6 30 //PC7
+
+
