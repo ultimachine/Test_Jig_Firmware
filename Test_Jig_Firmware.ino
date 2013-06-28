@@ -3,11 +3,11 @@
 #include "rambo.h"
 #include <SPI.h>
 
-#define DEBUG 1 //send debug info over serial about what we are doing
+#define DEBUG 0 //send debug info over serial about what we are doing
 #define DEBOUNCE 3
 
 #if DEBUG == 0
-#define DEBUG_PRINT(x,y) ;;
+#define DEBUG_PRINT(x,y) 
 #endif
 #if DEBUG == 1
 #define DEBUG_PRINT(x,y) Serial.print(x); Serial.println(y);
@@ -23,6 +23,7 @@ uint32_t stepFrequency; //clamp
 uint8_t dutyCycle; //analog write
 uint8_t monitorTime;
 uint16_t sampleFrequency;
+unsigned long startMillis;
 unsigned long lastMicros;
 unsigned long period;
 unsigned long stepsToHome = 0;
@@ -30,6 +31,7 @@ unsigned long testStart;
 uint8_t i, j;
 uint8_t posCounter[5] = {0,0,0,0,0};
 uint8_t consecutiveReads[5] = {0,0,0,0,0};
+byte startReads = 0;
 unsigned long stepperCount[5][10];
 char port;
 char state; 
@@ -38,7 +40,6 @@ void setup()
 { 
   //http://arduino.cc/en/reference/serial
   Serial.begin(115200); 
-  Serial.println("start");
 
   //setup pins
   pinMode(ENDSTOP_PIN, INPUT); //Endstop
@@ -63,7 +64,7 @@ void setup()
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
   pinMode(X_REF,INPUT);
-  pinMode(Y_REF,INPUT);
+  pinMode(Y_REF,INPUT); 
   pinMode(Z_REF,INPUT);
   pinMode(E0_REF,INPUT);
   pinMode(E1_REF,INPUT);
@@ -81,7 +82,7 @@ void setup()
   digitalWrite(MOS6,HIGH);  
 
  
- 
+  startMillis = millis();
   rambo::portEnable(0);
   rambo::portSetMicroSteps(16);
   //init digipots
@@ -93,11 +94,20 @@ void loop()
   //uint8_t a= PINJ;
   //Serial.print(PINJ,BIN);
   //Serial.println("");
+  if(!digitalRead(START_PIN))
+  {
+    startReads++;
+    if(startReads >= DEBOUNCE && millis()-startMillis >= 1000){
+      Serial.println("start");
+      startReads = 0;
+      startMillis = millis();
+    }
+  }
   if(Serial.available())
   {
     currentChar = Serial.read();
     DEBUG_PRINT("Recieved command : ", currentChar);
-
+    delay(10);
     switch (currentChar)
     {
 
