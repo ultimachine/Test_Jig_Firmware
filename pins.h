@@ -17,11 +17,17 @@
 #define Z_REF A5
 #define E0_REF A4
 #define E1_REF A3
+#define MOS1 19 //PL5
+#define MOS2 18 //PC5
+#define MOS3 17 //PL4
+#define MOS4 16 //PC6
+#define MOS5 15 //PL3
+#define MOS6 14 //PC7
+/*
 #define MOS1 44 //PL5
 #define MOS2 32 //PC5
 #define MOS3 45 //PL4
 #define MOS4 31 //PC6
 #define MOS5 46 //PL3
 #define MOS6 30 //PC7
-
-
+*/

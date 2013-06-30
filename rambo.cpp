@@ -5,19 +5,19 @@
 void rambo::portStep(){
   PORTC = B11111111;
   delayMicroseconds(1);
-  PORTC = B00000000;
+  PORTC = B11100000;
   return;
 }
 
 void rambo::portDirection(byte dir){
   if(dir)PORTL = B11111111;
-  else PORTL = B00000000;
+  else PORTL = B00111000;
   return;
 }
 
 void rambo::portEnable(byte en){
   if(en)PORTA = B00000000;
-  else PORTA = B11111111;
+  else PORTA = B11111000;
   return;
 }
 

@@ -40,7 +40,11 @@ void setup()
 { 
   //http://arduino.cc/en/reference/serial
   Serial.begin(115200); 
-
+  rambo::portEnable(0);
+  rambo::portSetMicroSteps(16);
+  //init digipots
+  digipot::init();
+  
   //setup pins
   pinMode(ENDSTOP_PIN, INPUT); //Endstop
   digitalWrite(ENDSTOP_PIN,HIGH); //turn on endstop pullups
@@ -49,9 +53,9 @@ void setup()
   pinMode(POWER_PIN, OUTPUT); //powersupply pin
 
   //RAMBo
-  DDRA = B11111111; //enable
-  DDRL = B11111111; //direction
-  DDRC = B11111111; //step
+  DDRA = B11111000; //enable
+  DDRL = B11000111; //direction
+  DDRC = B00011111; //step
   DDRJ = B00000000; //stepper monitors
   pinMode(X_MS1_PIN, OUTPUT); //microstep pin
   pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
@@ -83,10 +87,7 @@ void setup()
 
  
   startMillis = millis();
-  rambo::portEnable(0);
-  rambo::portSetMicroSteps(16);
-  //init digipots
-  digipot::init();
+  Serial.print("1");
 }
 
 void loop()
@@ -110,6 +111,25 @@ void loop()
     delay(10);
     switch (currentChar)
     {
+            //Read Port or Pin but turn pullups on
+      //Format: R<pin> or R<port char>
+      //Returns: <port int val>\n or <pin val>\n
+    case 'Q' : 
+      {
+        if(isAlpha(Serial.peek()))
+        {
+          port = Serial.read();
+          DEBUG_PRINT("Reading port : ", port);
+          Serial.println(getPin(port));
+        }
+        else if(isDigit(Serial.peek())){
+          pin = Serial.parseInt();
+          pinMode(pin,INPUT);
+         Serial.println(digitalRead(pin));
+        }
+        finished();
+        break; 
+      }
 
       //Read Port or Pin
       //Format: R<pin> or R<port char>
@@ -122,11 +142,10 @@ void loop()
           DEBUG_PRINT("Reading port : ", port);
           Serial.println(getPin(port));
         }
-        else if(isDigit(Serial.peek()))
-        {
+        else if(isDigit(Serial.peek())){
           pin = Serial.parseInt();
-          DEBUG_PRINT("Reading pin : ", pin);
-          Serial.println(digitalRead(pin));
+          pinMode(pin,INPUT);
+         Serial.println(digitalRead(pin));
         }
         finished();
         break; 
@@ -141,6 +160,7 @@ void loop()
         {
           pin = Serial.parseInt();
           DEBUG_PRINT("Writing to pin : ", pin);
+          pinMode(pin,OUTPUT);
           switch (Serial.read()) {
             //High
           case 'H' : 
@@ -252,7 +272,7 @@ void loop()
             testStart = millis();
             lastMicros = micros();
             DEBUG_PRINT("Starting test", "");
-            uint8_t lastPortSample = B11111111;
+            uint8_t lastPortSample = B11111100;
             for(i=0; i<=4; i++)
             { 
               posCounter[i] = 0; 
@@ -267,7 +287,7 @@ void loop()
               if ((micros()-lastMicros) >= period) 
               { 
                 lastMicros = micros();
-                uint8_t sample = PINJ;
+                uint8_t sample = PINJ & B11111100;
                 for(i=0; i<=4; i++){
                   if(((lastPortSample ^ sample) & (B00000100<<i)) && consecutiveReads[i] >= DEBOUNCE){
                     posCounter[i]++;
@@ -277,7 +297,7 @@ void loop()
                   consecutiveReads[i]++;
                 }
 
-                lastPortSample = PINJ;
+                lastPortSample = sample;
               }
             }
             DEBUG_PRINT("Ending Test", "");
