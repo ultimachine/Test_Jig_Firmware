@@ -89,7 +89,7 @@ void setup()
    digitalWrite(MOS6,HIGH);  
    */
   startMillis = millis();
-  Serial.print("1");
+  Serial.println("1");
 }
 
 void loop()
