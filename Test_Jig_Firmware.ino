@@ -29,8 +29,10 @@ unsigned long period;
 unsigned long stepsToHome = 0;
 unsigned long testStart;
 uint8_t i, j;
-uint8_t posCounter[5] = {0,0,0,0,0};
-uint8_t consecutiveReads[5] = {0,0,0,0,0};
+uint8_t posCounter[5] = {
+  0,0,0,0,0};
+uint8_t consecutiveReads[5] = {
+  0,0,0,0,0};
 byte startReads = 0;
 unsigned long stepperCount[5][10];
 char port;
@@ -44,7 +46,7 @@ void setup()
   rambo::portSetMicroSteps(16);
   //init digipots
   digipot::init();
-  
+
   //setup pins
   pinMode(ENDSTOP_PIN, INPUT); //Endstop
   digitalWrite(ENDSTOP_PIN,HIGH); //turn on endstop pullups
@@ -67,25 +69,25 @@ void setup()
   pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
+  /*
   pinMode(X_REF,INPUT);
-  pinMode(Y_REF,INPUT); 
-  pinMode(Z_REF,INPUT);
-  pinMode(E0_REF,INPUT);
-  pinMode(E1_REF,INPUT);
-  pinMode(MOS1,INPUT);
-  pinMode(MOS2,INPUT);
-  pinMode(MOS3,INPUT);
-  pinMode(MOS4,INPUT);
-  pinMode(MOS5,INPUT);
-  pinMode(MOS6,INPUT);
-  digitalWrite(MOS1,HIGH);  
-  digitalWrite(MOS2,HIGH);  
-  digitalWrite(MOS3,HIGH);  
-  digitalWrite(MOS4,HIGH);  
-  digitalWrite(MOS5,HIGH);  
-  digitalWrite(MOS6,HIGH);  
-
- 
+   pinMode(Y_REF,INPUT); 
+   pinMode(Z_REF,INPUT);
+   pinMode(E0_REF,INPUT);
+   pinMode(E1_REF,INPUT);
+   pinMode(MOS1,INPUT);
+   pinMode(MOS2,INPUT);
+   pinMode(MOS3,INPUT);
+   pinMode(MOS4,INPUT);
+   pinMode(MOS5,INPUT);
+   pinMode(MOS6,INPUT);
+   digitalWrite(MOS1,HIGH);  
+   digitalWrite(MOS2,HIGH);  
+   digitalWrite(MOS3,HIGH);  
+   digitalWrite(MOS4,HIGH);  
+   digitalWrite(MOS5,HIGH);  
+   digitalWrite(MOS6,HIGH);  
+   */
   startMillis = millis();
   Serial.print("1");
 }
@@ -111,21 +113,16 @@ void loop()
     delay(10);
     switch (currentChar)
     {
-            //Read Port or Pin but turn pullups on
-      //Format: R<pin> or R<port char>
-      //Returns: <port int val>\n or <pin val>\n
+      //Read Pin but turn pullups on
+      //Format: Q<pin>
+      //Returns: <pin val>\n
     case 'Q' : 
       {
-        if(isAlpha(Serial.peek()))
-        {
-          port = Serial.read();
-          DEBUG_PRINT("Reading port : ", port);
-          Serial.println(getPin(port));
-        }
-        else if(isDigit(Serial.peek())){
+        if(isDigit(Serial.peek())){
           pin = Serial.parseInt();
           pinMode(pin,INPUT);
-         Serial.println(digitalRead(pin));
+          digitalWrite(pin,HIGH);
+          Serial.println(digitalRead(pin));
         }
         finished();
         break; 
@@ -145,7 +142,7 @@ void loop()
         else if(isDigit(Serial.peek())){
           pin = Serial.parseInt();
           pinMode(pin,INPUT);
-         Serial.println(digitalRead(pin));
+          Serial.println(digitalRead(pin));
         }
         finished();
         break; 
@@ -428,6 +425,7 @@ uint8_t getPin(char c){
 void finished(void){
   Serial.println("ok");
 }
+
 
 
 
