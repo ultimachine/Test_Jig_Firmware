@@ -4,7 +4,7 @@
 #include <SPI.h>
 
 #define DEBUG 0 //send debug info over serial about what we are doing
-#define DEBOUNCE 3
+#define DEBOUNCE 2
 
 #if DEBUG == 0
 #define DEBUG_PRINT(x,y) 
@@ -17,15 +17,14 @@
 #define DOWN 1
 
 char currentChar; //current char we are processing
-uint8_t pin; //current pin we are playing with
-uint32_t stepCount; //clamp
-uint32_t stepFrequency; //clamp
+int8_t pin; //current pin we are playing with
+int stepCount; //clamp
+int stepFrequency; //clamp
 uint8_t dutyCycle; //analog write
-uint8_t monitorTime;
-uint16_t sampleFrequency;
+int sampleFrequency;
 unsigned long startMillis;
 unsigned long lastMicros;
-unsigned long period;
+unsigned int period;
 unsigned long stepsToHome = 0;
 unsigned long testStart;
 uint8_t i, j;
@@ -34,7 +33,7 @@ uint8_t posCounter[5] = {
 uint8_t consecutiveReads[5] = {
   0,0,0,0,0};
 byte startReads = 0;
-unsigned long stepperCount[5][10];
+unsigned long stepperCount[5][5];
 char port;
 char state; 
 
@@ -123,9 +122,25 @@ void loop()
           pinMode(pin,INPUT);
           digitalWrite(pin,HIGH);
           Serial.println(digitalRead(pin));
+          pin = -1;
         }
         finished();
         break; 
+      }
+
+      //Analog Read
+      //Format: A<pin>
+    case 'A' :
+      {
+        if(isDigit(Serial.peek()))
+        {
+          pin = Serial.parseInt();
+          DEBUG_PRINT("Analog reading pin : ", pin);
+          Serial.println(analogRead(pin));
+          pin = -1;
+        }
+        finished();
+        break;
       }
 
       //Read Port or Pin
@@ -143,6 +158,7 @@ void loop()
           pin = Serial.parseInt();
           pinMode(pin,INPUT);
           Serial.println(digitalRead(pin));
+          pin = -1;
         }
         finished();
         break; 
@@ -174,6 +190,7 @@ void loop()
               break;
             }
           }
+          pin = -1;
         }
         finished();
         break; 
@@ -223,20 +240,6 @@ void loop()
         break;
       }
 
-      //Analog Read
-      //Format: A<pin>
-    case 'A' : 
-      {
-        if(isDigit(Serial.peek()))
-        {
-          pin = Serial.parseInt();
-          DEBUG_PRINT("Analog reading pin : ", pin);
-          Serial.println(analogRead(pin));
-        }
-        finished();
-        break;
-      }
-
       //Set Microsteps
       //Format: U<microsteps>
     case 'U' : 
@@ -246,6 +249,7 @@ void loop()
           pin = Serial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
           rambo::portSetMicroSteps(pin);
+          pin = -1;
         }
         finished();
         break;
@@ -253,13 +257,13 @@ void loop()
 
 
       //Monitor Stepper test
-      //Format: M<time>F<frequency>
+      //Format: M<pin to watch>F<frequency>
     case 'M' : 
       {
         if(isDigit(Serial.peek()))
         {
-          monitorTime = Serial.parseInt();
-          DEBUG_PRINT("Monitoring stepper test time (s) : ", monitorTime);
+          pin = Serial.parseInt();
+          DEBUG_PRINT("Watching pin : ", pin);
           if (Serial.peek() == 'F')
           {
             sampleFrequency = Serial.parseInt();
@@ -267,8 +271,6 @@ void loop()
             period = 1000000/sampleFrequency;
             DEBUG_PRINT("Monitoring every (us) : ", period);
             testStart = millis();
-            lastMicros = micros();
-            DEBUG_PRINT("Starting test", "");
             uint8_t lastPortSample = B11111100;
             for(i=0; i<=4; i++)
             { 
@@ -277,10 +279,14 @@ void loop()
             }
             for(i=0; i<=4; i++)
             {
-              for(j = 0; j <= 9; j++) 
+              for(j = 0; j <= 4; j++) 
                 stepperCount[i][j] = 0;
             }
-            while(millis()-testStart <= monitorTime*1000){
+            pinMode(pin,INPUT);
+            digitalWrite(pin,HIGH);
+            while(digitalRead(pin));
+            lastMicros = micros();
+            while(!digitalRead(pin)){
               if ((micros()-lastMicros) >= period) 
               { 
                 lastMicros = micros();
@@ -299,13 +305,13 @@ void loop()
             }
             DEBUG_PRINT("Ending Test", "");
             for(i=0; i<=4; i++){
-              for(j = 0; j <= 9; j++){
+              for(j = 0; j <= 4; j++){
                 if(j==0){
                   Serial.print("{");
                   Serial.print(stepperCount[i][j]);
                   Serial.print(",");
                 }
-                else if(j==9){
+                else if(j==4){
                   Serial.print(stepperCount[i][j]);
                   Serial.println("}");
                 }
@@ -315,6 +321,7 @@ void loop()
                 }
               }
             }
+            pin = -1;
           }
         }
         finished();
@@ -335,6 +342,7 @@ void loop()
             DEBUG_PRINT("Analog write duty cycle : ", dutyCycle);
             pinMode(pin,OUTPUT); 
             analogWrite(pin,dutyCycle);
+            pin = -1;
           }
         }
         finished();
@@ -342,7 +350,7 @@ void loop()
       }
 
       //Clamp board
-      //Format: C<steps>F<frequency><Direction - D or U>
+      //Format: C<steps>F<frequency><Direction - D or U>P<pin to signal>
     case 'C' : 
       {
         if(isDigit(Serial.peek()))
@@ -374,6 +382,12 @@ void loop()
             }
             rambo::portEnable(1);
             stepsToHome = 0;
+            if(Serial.peek() == 'P'){
+              pin = Serial.parseInt();
+              pinMode(pin,OUTPUT);
+              digitalWrite(pin,HIGH);
+              delay(20);
+            }
             lastMicros = micros();
             while(stepsToHome <= stepCount){
               if ((micros()-lastMicros) >= period) 
@@ -383,13 +397,17 @@ void loop()
                 stepsToHome++;
               }
             }
+            if(pin != -1){
+              delay(20);
+              digitalWrite(pin, LOW);
+              pin = -1;
+            }
           }
         }
         finished();
         break;
       }
     default :
-      Serial.println("Unknown command"); 
       break;
     }
   }
@@ -425,6 +443,7 @@ uint8_t getPin(char c){
 void finished(void){
   Serial.println("ok");
 }
+
 
 
 
