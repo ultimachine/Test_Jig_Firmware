@@ -36,6 +36,7 @@ byte startReads = 0;
 unsigned long stepperCount[5][5];
 char port;
 char state; 
+uint8_t current;
 
 void setup()
 { 
@@ -250,6 +251,20 @@ void loop()
           DEBUG_PRINT("setting microsteps : ", pin);
           rambo::portSetMicroSteps(pin);
           pin = -1;
+        }
+        finished();
+        break;
+      }
+
+      //Set Digital Trimpot
+      //Format: V<255>
+    case 'V' :
+      {
+        if(isDigit(Serial.peek()))
+        {
+          current = Serial.parseInt();
+          DEBUG_PRINT("setting digital trimpot: ", current);
+          digipot::setMotorCurrent(current);
         }
         finished();
         break;
