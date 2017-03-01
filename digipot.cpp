@@ -4,6 +4,8 @@
 
 #define DIGIPOT_CHANNELS {4,5,3,0,1}
 
+#ifdef BOARD_RAMBO
+
 inline void digipot::write(byte address, byte value) // From Arduino DigitalPotControl example
 {
   digitalWrite(DIGIPOTSS_PIN,LOW); // take the SS pin low to select the chip
@@ -28,4 +30,4 @@ void digipot::init() //Initialize Digipot Motor Current
     setVoltage(i,digipot_motor_current[i]);
 }
 
-
+#endif

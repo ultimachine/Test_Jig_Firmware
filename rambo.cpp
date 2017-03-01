@@ -1,6 +1,57 @@
 #include <Arduino.h>
 #include "pins.h"
 #include "rambo.h"
+#include "digipot.h"
+
+#ifdef BOARD_RAMBO
+
+void rambo::init(){
+  rambo::portEnable(0);
+  rambo::portSetMicroSteps(16);
+
+  //set outputs
+  DDRA = B11111000; //enable
+  DDRL = B11000111; //direction
+  DDRC = B00011111; //step
+
+  //set inputs
+  DDRJ = B00000000; //stepper monitors
+
+  pinMode(X_MS1_PIN, OUTPUT); //microstep pin
+  pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
+  pinMode(Z_MS1_PIN, OUTPUT); //microstep pin
+  pinMode(E0_MS1_PIN, OUTPUT); //microstep pin
+  pinMode(E1_MS1_PIN, OUTPUT); //microstep pin
+  pinMode(X_MS2_PIN, OUTPUT); //microstep pin
+  pinMode(Y_MS2_PIN, OUTPUT); //microstep pin
+  pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
+  pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
+  pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
+
+  //pinMode(POWER_PIN, OUTPUT); //powersupply pin
+
+  digipot::init();
+
+  /*
+  pinMode(X_REF,INPUT);
+   pinMode(Y_REF,INPUT); 
+   pinMode(Z_REF,INPUT);
+   pinMode(E0_REF,INPUT);
+   pinMode(E1_REF,INPUT);
+   pinMode(MOS1,INPUT);
+   pinMode(MOS2,INPUT);
+   pinMode(MOS3,INPUT);
+   pinMode(MOS4,INPUT);
+   pinMode(MOS5,INPUT);
+   pinMode(MOS6,INPUT);
+   digitalWrite(MOS1,HIGH);  
+   digitalWrite(MOS2,HIGH);  
+   digitalWrite(MOS3,HIGH);  
+   digitalWrite(MOS4,HIGH);  
+   digitalWrite(MOS5,HIGH);  
+   digitalWrite(MOS6,HIGH);  
+   */
+}
 
 void rambo::portStep(){
   PORTC = B11111111;
@@ -82,3 +133,5 @@ void rambo::portSetMicroSteps(byte ms){
 
   } 
 }
+
+#endif

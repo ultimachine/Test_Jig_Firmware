@@ -1,6 +1,6 @@
-#include "digipot.h"
 #include "pins.h"
 #include "rambo.h"
+#include "archim.h"
 #include <SPI.h>
 
 #define DEBUG 0 //send debug info over serial about what we are doing
@@ -10,104 +10,77 @@
 #define DEBUG_PRINT(x,y) 
 #endif
 #if DEBUG == 1
-#define DEBUG_PRINT(x,y) Serial.print(x); Serial.println(y);
+#define DEBUG_PRINT(x,y) MainSerial.print(x); MainSerial.println(y);
 #endif
 
 #define UP 0
 #define DOWN 1
 
-char currentChar; //current char we are processing
-int8_t pin; //current pin we are playing with
-int stepCount; //clamp
-int stepFrequency; //clamp
-uint8_t dutyCycle; //analog write
-int sampleFrequency;
-unsigned long startMillis;
-unsigned long lastMicros;
-unsigned int period;
-unsigned long stepsToHome = 0;
-unsigned long testStart;
-uint8_t i, j;
-uint8_t posCounter[5] = {
-  0,0,0,0,0};
-uint8_t consecutiveReads[5] = {
-  0,0,0,0,0};
-byte startReads = 0;
-unsigned long stepperCount[5][5];
-char port;
-char state; 
+#ifdef BOARD_ARCHIM
+namespace board = archim;
+#endif
+#ifdef BOARD_RAMBO
+namespace board = rambo;
+#endif
+
+
+//int sampleFrequency;
+
+//unsigned int period;
+//unsigned long testStart;
+//uint8_t i, j;
+//uint8_t posCounter[5] = { 0,0,0,0,0 };
+//uint8_t consecutiveReads[5] = { 0,0,0,0,0 };
+//byte startReads = 0;
+//unsigned long stepperCount[5][5];
+//char port;
+//char state; 
 
 void setup()
-{ 
-  //http://arduino.cc/en/reference/serial
-  Serial.begin(115200); 
-  rambo::portEnable(0);
-  rambo::portSetMicroSteps(16);
-  //init digipots
-  digipot::init();
+{
+  MainSerial.begin(115200); 
+
+  board::init(); //set microstep mode pins to outputs
 
   //setup pins
-  pinMode(ENDSTOP_PIN, INPUT); //Endstop
-  digitalWrite(ENDSTOP_PIN,HIGH); //turn on endstop pullups
-  pinMode(START_PIN, INPUT); //Start Pin
-  digitalWrite(START_PIN,HIGH); //Start Pin pullups  
-  pinMode(POWER_PIN, OUTPUT); //powersupply pin
+  #ifdef ENDSTOP_PIN
+  pinMode(ENDSTOP_PIN, INPUT_PULLUP); //Endstop
+  #endif
 
-  //RAMBo
-  DDRA = B11111000; //enable
-  DDRL = B11000111; //direction
-  DDRC = B00011111; //step
-  DDRJ = B00000000; //stepper monitors
-  pinMode(X_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(Z_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(E0_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(X_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(Y_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
-  /*
-  pinMode(X_REF,INPUT);
-   pinMode(Y_REF,INPUT); 
-   pinMode(Z_REF,INPUT);
-   pinMode(E0_REF,INPUT);
-   pinMode(E1_REF,INPUT);
-   pinMode(MOS1,INPUT);
-   pinMode(MOS2,INPUT);
-   pinMode(MOS3,INPUT);
-   pinMode(MOS4,INPUT);
-   pinMode(MOS5,INPUT);
-   pinMode(MOS6,INPUT);
-   digitalWrite(MOS1,HIGH);  
-   digitalWrite(MOS2,HIGH);  
-   digitalWrite(MOS3,HIGH);  
-   digitalWrite(MOS4,HIGH);  
-   digitalWrite(MOS5,HIGH);  
-   digitalWrite(MOS6,HIGH);  
-   */
-  startMillis = millis();
-  Serial.println("1");
+  #ifdef START_PIN
+  pinMode(START_PIN, INPUT_PULLUP); //Start Pin pullups  
+  #endif
+
+  while(!MainSerial) { }
+
+  MainSerial.println("1");
 }
 
 void loop()
 {
+  unsigned long stepsToHome = 0;
+  unsigned long lastMicros;
+  static char currentChar;
+
+  static unsigned long startMillis = millis();
+
   //uint8_t a= PINJ;
-  //Serial.print(PINJ,BIN);
-  //Serial.println("");
+  //MainSerial.print(PINJ,BIN);
+  //MainSerial.println("");
+  #ifdef START_PIN
   if(!digitalRead(START_PIN))
   {
     startReads++;
     if(startReads >= DEBOUNCE && millis()-startMillis >= 1000){
-      Serial.println("start");
+      MainSerial.println("start");
       startReads = 0;
       startMillis = millis();
     }
   }
-  if(Serial.available())
+  #endif
+  if(MainSerial.available())
   {
-    currentChar = Serial.read();
+    char currentChar = MainSerial.read();
     DEBUG_PRINT("Recieved command : ", currentChar);
     delay(10);
     switch (currentChar)
@@ -117,12 +90,10 @@ void loop()
       //Returns: <pin val>\n
     case 'Q' : 
       {
-        if(isDigit(Serial.peek())){
-          pin = Serial.parseInt();
-          pinMode(pin,INPUT);
-          digitalWrite(pin,HIGH);
-          Serial.println(digitalRead(pin));
-          pin = -1;
+        if(isDigit(MainSerial.peek())){
+          uint8_t pin = MainSerial.parseInt();
+          pinMode(pin,INPUT_PULLUP);
+          MainSerial.println(digitalRead(pin));
         }
         finished();
         break; 
@@ -132,12 +103,12 @@ void loop()
       //Format: A<pin>
     case 'A' :
       {
-        if(isDigit(Serial.peek()))
+        if(isDigit(MainSerial.peek()))
         {
-          pin = Serial.parseInt();
-          DEBUG_PRINT("Analog reading pin : ", pin);
-          Serial.println(analogRead(pin));
-          pin = -1;
+          uint8_t pin = MainSerial.parseInt();
+          //DEBUG MODE BREAKS THERMISTOR READING, LOL HAHAHA
+          //DEBUG_PRINT("Analog reading pin : ", pin);
+          MainSerial.println(analogRead(pin));
         }
         finished();
         break;
@@ -148,17 +119,18 @@ void loop()
       //Returns: <port int val>\n or <pin val>\n
     case 'R' : 
       {
-        if(isAlpha(Serial.peek()))
+        /*
+        if(isAlpha(MainSerial.peek()))
         {
-          port = Serial.read();
+          port = MainSerial.read();
           DEBUG_PRINT("Reading port : ", port);
-          Serial.println(getPin(port));
+          MainSerial.println(getPin(port));
         }
-        else if(isDigit(Serial.peek())){
-          pin = Serial.parseInt();
+        else */
+        if(isDigit(MainSerial.peek())){
+          uint8_t pin = MainSerial.parseInt();
           pinMode(pin,INPUT);
-          Serial.println(digitalRead(pin));
-          pin = -1;
+          MainSerial.println(digitalRead(pin));
         }
         finished();
         break; 
@@ -169,12 +141,12 @@ void loop()
     case 'W' : 
       {
         //Pin
-        if(isDigit(Serial.peek()))
+        if(isDigit(MainSerial.peek()))
         {
-          pin = Serial.parseInt();
+          uint8_t pin = MainSerial.parseInt();
           DEBUG_PRINT("Writing to pin : ", pin);
           pinMode(pin,OUTPUT);
-          switch (Serial.read()) {
+          switch (MainSerial.read()) {
             //High
           case 'H' : 
             {
@@ -190,7 +162,6 @@ void loop()
               break;
             }
           }
-          pin = -1;
         }
         finished();
         break; 
@@ -199,57 +170,64 @@ void loop()
       //Home
       //Format: H<step frequency>
       //Returns: Steps taken to home
+      /**
     case 'H' : 
       {
-        if(isDigit(Serial.peek()))
+        #ifdef BOARD_ARCHIM
+        using namespace archim;
+        #endif
+        #ifdef BOARD_RAMBO
+        using namespace rambo;
+        #endif
+        if(isDigit(MainSerial.peek()))
         {
-          stepFrequency = Serial.parseInt();
+          stepFrequency = MainSerial.parseInt();
           DEBUG_PRINT("Homing at step frequency (hz) : ", stepFrequency);
           period = 1000000/stepFrequency;
           DEBUG_PRINT("Stepping every (us) : ", period);
-          rambo::portEnable(1);
+          portEnable(1);
           stepsToHome = 0;
           lastMicros = micros();
 
           //if we are already at the endstop move upwards until we are not
           if(digitalRead(ENDSTOP_PIN)){
-            rambo::portDirection(UP);
+            board->portDirection(UP);
             while(digitalRead(ENDSTOP_PIN) || stepsToHome <=1000){
               if(!digitalRead(ENDSTOP_PIN)) stepsToHome++;
               if ((micros()-lastMicros) >= period) 
               { 
-                rambo::portStep(); 
+                portStep(); 
                 lastMicros = micros();
               } 
             }
           }
           stepsToHome =0;
-          rambo::portDirection(DOWN);
+          portDirection(DOWN);
           while(!digitalRead(ENDSTOP_PIN)){
             if ((micros()-lastMicros) >= period) 
             { 
-              rambo::portStep(); 
+              portStep(); 
               lastMicros = micros();
               stepsToHome++;
             }
           }
-          Serial.println(stepsToHome);
+          MainSerial.println(stepsToHome);
         }
-        rambo::portEnable(0);
+        portEnable(0);
         finished();
         break;
       }
+      */
 
       //Set Microsteps
       //Format: U<microsteps>
     case 'U' : 
       {
-        if(isDigit(Serial.peek()))
+        if(isDigit(MainSerial.peek()))
         {
-          pin = Serial.parseInt();
+          uint8_t pin = MainSerial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
-          rambo::portSetMicroSteps(pin);
-          pin = -1;
+          board::portSetMicroSteps(pin);
         }
         finished();
         break;
@@ -258,15 +236,16 @@ void loop()
 
       //Monitor Stepper test
       //Format: M<pin to watch>F<frequency>
+      /*
     case 'M' : 
       {
-        if(isDigit(Serial.peek()))
+        if(isDigit(MainSerial.peek()))
         {
-          pin = Serial.parseInt();
+          pin = MainSerial.parseInt();
           DEBUG_PRINT("Watching pin : ", pin);
-          if (Serial.peek() == 'F')
+          if (MainSerial.peek() == 'F')
           {
-            sampleFrequency = Serial.parseInt();
+            sampleFrequency = MainSerial.parseInt();
             DEBUG_PRINT("Monitoring at frequency (hz) : ", sampleFrequency);
             period = 1000000/sampleFrequency;
             DEBUG_PRINT("Monitoring every (us) : ", period);
@@ -307,17 +286,17 @@ void loop()
             for(i=0; i<=4; i++){
               for(j = 0; j <= 4; j++){
                 if(j==0){
-                  Serial.print("{");
-                  Serial.print(stepperCount[i][j]);
-                  Serial.print(",");
+                  MainSerial.print("{");
+                  MainSerial.print(stepperCount[i][j]);
+                  MainSerial.print(",");
                 }
                 else if(j==4){
-                  Serial.print(stepperCount[i][j]);
-                  Serial.println("}");
+                  MainSerial.print(stepperCount[i][j]);
+                  MainSerial.println("}");
                 }
                 else {
-                  Serial.print(stepperCount[i][j]);
-                  Serial.print(",");
+                  MainSerial.print(stepperCount[i][j]);
+                  MainSerial.print(",");
                 }
               }
             }
@@ -327,22 +306,22 @@ void loop()
         finished();
         break;
       }
+      */
 
       //Write PWM
       //Format: P<pin>D<duty cycle>
     case 'P' : 
       {
-        if(isDigit(Serial.peek()))
+        if(isDigit(MainSerial.peek()))
         {
-          pin = Serial.parseInt();
+          uint8_t pin = MainSerial.parseInt();
           DEBUG_PRINT("Analog write pin : ", pin);
-          if(Serial.peek() == 'D')
+          if(MainSerial.peek() == 'D')
           {
-            dutyCycle = Serial.parseInt();
+            uint8_t dutyCycle = MainSerial.parseInt();
             DEBUG_PRINT("Analog write duty cycle : ", dutyCycle);
             pinMode(pin,OUTPUT); 
             analogWrite(pin,dutyCycle);
-            pin = -1;
           }
         }
         finished();
@@ -353,37 +332,41 @@ void loop()
       //Format: C<steps>F<frequency><Direction - D or U>P<pin to signal>
     case 'C' : 
       {
-        if(isDigit(Serial.peek()))
+        unsigned int period;
+        int stepFrequency;
+        int8_t pin;
+
+        if(isDigit(MainSerial.peek()))
         {
-          stepCount = Serial.parseInt();
+          int stepCount = MainSerial.parseInt();
           DEBUG_PRINT("Clamping steps : ", stepCount);
-          if (Serial.peek() == 'F')
+          if (MainSerial.peek() == 'F')
           {
-            stepFrequency = Serial.parseInt();
+            stepFrequency = MainSerial.parseInt();
             DEBUG_PRINT("Clamp step frequency (hz) : ", stepFrequency);
             period = 1000000/stepFrequency;
             DEBUG_PRINT("Stepping every (us) : ", period);
-            rambo::portDirection(UP);
-            switch (Serial.read()) {
+            board::portDirection(UP);
+            switch (MainSerial.read()) {
               //Up
             case 'U' : 
               {
                 DEBUG_PRINT("Going up.",' ');
-                rambo::portDirection(UP);
+                board::portDirection(UP);
                 break;
               }
               //Down
             case 'D' : 
               {
                 DEBUG_PRINT("Going down.",' ');
-                rambo::portDirection(DOWN);
+                board::portDirection(DOWN);
                 break;
               }
             }
-            rambo::portEnable(1);
+            board::portEnable(1);
             stepsToHome = 0;
-            if(Serial.peek() == 'P'){
-              pin = Serial.parseInt();
+            if(MainSerial.peek() == 'P'){
+              pin = MainSerial.parseInt();
               pinMode(pin,OUTPUT);
               digitalWrite(pin,HIGH);
               delay(20);
@@ -392,7 +375,7 @@ void loop()
             while(stepsToHome <= stepCount){
               if ((micros()-lastMicros) >= period) 
               { 
-                rambo::portStep(); 
+                board::portStep(); 
                 lastMicros = micros();
                 stepsToHome++;
               }
@@ -407,12 +390,14 @@ void loop()
         finished();
         break;
       }
+
     default :
       break;
     }
   }
 }
 
+/*
 uint8_t getPin(char c){
   switch(c){
   case 'A': 
@@ -439,9 +424,10 @@ uint8_t getPin(char c){
     return PINL;
   }
 }
+*/
 
 void finished(void){
-  Serial.println("ok");
+  MainSerial.println("ok");
 }
 
 
