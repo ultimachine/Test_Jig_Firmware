@@ -61,6 +61,10 @@ namespace archim{
   void portSetMicroSteps(byte ms);
 }
 
+void spiflash_init();
+uint8_t spiflash_read_byte(long address);
+void spiflash_write_byte(long address, uint8_t value);
+
 #endif
 
 #endif

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "pins.h"
 #include "archim.h"
+#include <SPI.h>
 
 #ifdef BOARD_ARCHIM
 
@@ -181,6 +182,82 @@ void archim::portSetMicroSteps(byte ms)
       set_modes0(HIGH);
       break;
  }
+}
+
+
+
+// --------------------------------------------------------------------------
+// spiflash
+// --------------------------------------------------------------------------
+#define SPIFLASH_CS 86 //77  // Chip Select PIN
+#define SPIFLASH_WRITE_ENABLE  0x06  //Write Enable (06h)
+#define SPIFLASH_READ_STATUS   0x05  //Read Status Register (05h)
+#define SPIFLASH_WRITE_IN_PROGRESS_MASK 0b00000001
+#define SPIFLASH_PAGE_PROGRAM  0x02  //Page Program (PP) (02h)
+#define SPIFLASH_READ_DATA     0x03  //Read Data (03h)
+#define SPIFLASH_SECTOR_ERASE  0x20  //Sector Erase (SE) (20h)
+#define SPIFLASH_READ_ID       0x90  //Read Manufacturer / Device ID
+
+void spiflash_init()
+{
+  pinMode(SPIFLASH_CS,OUTPUT);
+  digitalWrite(SPIFLASH_CS,HIGH);
+  SPI.begin(SPIFLASH_CS);
+
+  digitalWrite(SPIFLASH_CS,LOW);
+  // MFG ID
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_READ_ID, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, 0x00, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, 0x00, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, 0x00, SPI_CONTINUE);
+  //SerialUSB.print(PSTR("SPIFLASH_MFG_ID: ")); 
+  /*SerialUSB.print(*/ SPI.transfer(SPIFLASH_CS, 0x00, SPI_CONTINUE) /*)*/;
+  //SerialUSB.print(" "); 
+  SerialUSB.println( SPI.transfer(SPIFLASH_CS, 0x00) );
+
+  digitalWrite(SPIFLASH_CS,HIGH);
+  pinMode(E0_STEP_PIN,OUTPUT);
+  digitalWrite(E0_STEP_PIN,LOW);
+}
+
+uint8_t spiflash_busy()
+{
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_READ_STATUS, SPI_CONTINUE);
+  uint8_t busy = SPI.transfer(SPIFLASH_CS, 0x00) & 0b00000001;
+  if(busy) SerialUSB.println(PSTR("SPIFLASH BUSY"));
+  return(busy);
+}
+
+uint8_t spiflash_read_byte(long address)
+{
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_READ_DATA, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 16, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 8, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address, SPI_CONTINUE);
+  uint8_t result = SPI.transfer(SPIFLASH_CS, 0x00);
+  return result;  
+}
+
+void spiflash_erase(long address)
+{
+  //SerialUSB.println(PSTR("SPI FLASH ERASE!"));
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_WRITE_ENABLE);
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_SECTOR_ERASE, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 16, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 8, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address);
+  while(spiflash_busy());  
+}
+
+void spiflash_write_byte(long address, uint8_t value)
+{
+  while(spiflash_busy());
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_WRITE_ENABLE);
+  SPI.transfer(SPIFLASH_CS, SPIFLASH_PAGE_PROGRAM, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 16, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address >> 8, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, address, SPI_CONTINUE);
+  SPI.transfer(SPIFLASH_CS, value); // Value to Write
 }
 
 #endif // BOARD_ARCHIM

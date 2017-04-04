@@ -390,6 +390,12 @@ void loop()
         finished();
         break;
       }
+       //SPI FLASH INIT - RETURNS MFG DEVICE ID: 20
+      //Format: S
+    case 'S' :
+      spiflash_init();
+      finished();
+      break;
 
     default :
       break;
