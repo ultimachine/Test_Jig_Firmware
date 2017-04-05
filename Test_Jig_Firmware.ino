@@ -3,6 +3,10 @@
 #include "archim.h"
 #include <SPI.h>
 
+#ifdef SDHSMCI_SUPPORT
+  #include <SD_HSMCI.h>
+#endif
+
 #define DEBUG 0 //send debug info over serial about what we are doing
 #define DEBOUNCE 2
 
@@ -394,6 +398,12 @@ void loop()
       //Format: S
     case 'S' :
       spiflash_init();
+      finished();
+      break;
+
+      // Test SD Card
+    case 'D' :
+      board::sdinit();
       finished();
       break;
 

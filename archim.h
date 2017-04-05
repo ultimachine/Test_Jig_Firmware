@@ -5,6 +5,8 @@
 
 #define MainSerial SerialUSB
 
+#define SDHSMCI_SUPPORT
+
 #define X_STEP_PIN         40 //PC8 STEP1
 #define X_DIR_PIN          59 //PA4 DIR1 (Analog Input 5)
 #define X_ENABLE_PIN       41 //PC9 EN1
@@ -59,6 +61,7 @@ namespace archim{
   void portDirection(byte dir);
   void portEnable(byte en);
   void portSetMicroSteps(byte ms);
+  void sdinit();
 }
 
 void spiflash_init();

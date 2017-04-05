@@ -5,6 +5,11 @@
 
 #ifdef BOARD_ARCHIM
 
+#ifdef SDHSMCI_SUPPORT
+  #include "Arduino_Due_SD_HSCMI.h"
+  #include <SD_HSMCI.h>
+#endif
+
 void archim::init()
 {
   archim::portEnable(0);
@@ -184,6 +189,18 @@ void archim::portSetMicroSteps(byte ms)
  }
 }
 
+void archim::sdinit() {
+  #ifdef SDHSMCI_SUPPORT
+  SD.Init();
+  if(sd_mmc_check(0) == SD_MMC_OK) {
+    SerialUSB.println("42"); // sd ok
+  } else {
+    SerialUSB.println("1"); // sd failed
+  }
+  #else
+    SerialUSB.println("2"); // sd not supported
+  #endif
+}
 
 
 // --------------------------------------------------------------------------
