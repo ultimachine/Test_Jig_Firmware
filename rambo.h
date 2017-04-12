@@ -47,7 +47,11 @@ namespace rambo{
   void portDirection(byte dir);
   void portEnable(byte en);
   void portSetMicroSteps(byte ms);
+
+  void sdinit();
 }
+
+void spiflash_init();
 
 #endif
 

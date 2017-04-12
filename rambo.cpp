@@ -134,4 +134,7 @@ void rambo::portSetMicroSteps(byte ms){
   } 
 }
 
+void rambo::sdinit() {}
+void spiflash_init() {}
+
 #endif

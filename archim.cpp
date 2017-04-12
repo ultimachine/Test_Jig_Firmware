@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "pins.h"
 #include "archim.h"
+#include "Arduino_Due_SD_HSCMI.h"
 #include <SPI.h>
 
 #ifdef BOARD_ARCHIM

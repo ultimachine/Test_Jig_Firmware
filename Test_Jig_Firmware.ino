@@ -35,7 +35,7 @@ namespace board = rambo;
 //uint8_t i, j;
 //uint8_t posCounter[5] = { 0,0,0,0,0 };
 //uint8_t consecutiveReads[5] = { 0,0,0,0,0 };
-//byte startReads = 0;
+byte startReads = 0;
 //unsigned long stepperCount[5][5];
 //char port;
 //char state; 

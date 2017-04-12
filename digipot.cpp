@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include "pins.h"
+#include "rambo.h"
 #include "digipot.h"
 
 #define DIGIPOT_CHANNELS {4,5,3,0,1}

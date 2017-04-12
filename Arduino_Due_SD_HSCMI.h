@@ -15,6 +15,7 @@ Licence: GPL
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#ifdef BOARD_ARCHIM
 
 #define SD_DEBUG false
 
@@ -319,5 +320,6 @@ static const uint8_t PIN_HSMCI_MCDA3_GPIO_ARDUINO  = 55;
 
 extern MassStorage SD;
 
+#endif
 
 #endif

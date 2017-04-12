@@ -1,3 +1,7 @@
+#include "pins.h"
+
+#ifdef BOARD_ARCHIM
+
 #include "Arduino_Due_SD_HSCMI.h"
 #include <SD_HSMCI.h>
 
@@ -943,3 +947,4 @@ uint32_t FileStore::longestWriteTime = 0;
 MassStorage SD;
 
 //***************************************************************************************************
+#endif
