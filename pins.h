@@ -1,5 +1,5 @@
-#define ENDSTOP_PIN 10
-#define START_PIN 11
+#define ENDSTOP_PIN 15
+#define START_PIN 14
 #define POWER_PIN 3
 #define X_MS1_PIN 40
 #define X_MS2_PIN 41
@@ -17,11 +17,17 @@
 #define Z_REF A5
 #define E0_REF A4
 #define E1_REF A3
+//#define MOS1 44 //PL5
+#define MOS2 32 //PC5
+//#define MOS3 45 //PL4
+#define MOS4 31 //PC6
+//#define MOS5 46 //PL3
+#define MOS6 30 //PC7
+/*
 #define MOS1 44 //PL5
 #define MOS2 32 //PC5
 #define MOS3 45 //PL4
 #define MOS4 31 //PC6
 #define MOS5 46 //PL3
 #define MOS6 30 //PC7
-
-
+*/
