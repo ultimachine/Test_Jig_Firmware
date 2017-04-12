@@ -2,9 +2,10 @@
 #include "pins.h"
 #include "rambo.h"
 #include <SPI.h>
+//#include <Arduino.h>
 
 #define DEBUG 0 //send debug info over serial about what we are doing
-#define DEBOUNCE 3
+#define DEBOUNCE 2
 
 #if DEBUG == 0
 #define DEBUG_PRINT(x,y) 
@@ -17,22 +18,23 @@
 #define DOWN 1
 
 char currentChar; //current char we are processing
-uint8_t pin; //current pin we are playing with
-uint32_t stepCount; //clamp
-uint32_t stepFrequency; //clamp
+int8_t pin; //current pin we are playing with
+int stepCount; //clamp
+int stepFrequency; //clamp
 uint8_t dutyCycle; //analog write
-uint8_t monitorTime;
-uint16_t sampleFrequency;
+int sampleFrequency;
 unsigned long startMillis;
 unsigned long lastMicros;
-unsigned long period;
+unsigned int period;
 unsigned long stepsToHome = 0;
 unsigned long testStart;
 uint8_t i, j;
-uint8_t posCounter[5] = {0,0,0,0,0};
-uint8_t consecutiveReads[5] = {0,0,0,0,0};
+uint8_t posCounter[5] = {
+  0,0,0,0,0};
+uint8_t consecutiveReads[5] = {
+  0,0,0,0,0};
 byte startReads = 0;
-unsigned long stepperCount[5][10];
+unsigned long stepperCount[5][5];
 char port;
 char state; 
 
@@ -40,6 +42,10 @@ void setup()
 { 
   //http://arduino.cc/en/reference/serial
   Serial.begin(115200); 
+  rambo::portEnable(0);
+  rambo::portSetMicroSteps(16);
+  //init digipots
+//  digipot::init();
 
   //setup pins
   pinMode(ENDSTOP_PIN, INPUT); //Endstop
@@ -47,11 +53,20 @@ void setup()
   pinMode(START_PIN, INPUT); //Start Pin
   digitalWrite(START_PIN,HIGH); //Start Pin pullups  
   pinMode(POWER_PIN, OUTPUT); //powersupply pin
-
+/*
+  //Vrefs
+   TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
+  pinMode(46, OUTPUT);
+  analogWrite(46, 200);
+  pinMode(45, OUTPUT);
+  analogWrite(45, 200);
+  pinMode(44, OUTPUT);
+  analogWrite(44, 200);
+*/
   //RAMBo
-  DDRA = B11111111; //enable
-  DDRL = B11111111; //direction
-  DDRC = B11111111; //step
+  DDRA = B11111000; //enable
+  DDRL = B11000111; //direction
+  DDRC = B00011111; //step
   DDRJ = B00000000; //stepper monitors
   pinMode(X_MS1_PIN, OUTPUT); //microstep pin
   pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
@@ -63,34 +78,39 @@ void setup()
   pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
+  /*
   pinMode(X_REF,INPUT);
-  pinMode(Y_REF,INPUT); 
-  pinMode(Z_REF,INPUT);
-  pinMode(E0_REF,INPUT);
-  pinMode(E1_REF,INPUT);
-  pinMode(MOS1,INPUT);
-  pinMode(MOS2,INPUT);
-  pinMode(MOS3,INPUT);
-  pinMode(MOS4,INPUT);
-  pinMode(MOS5,INPUT);
-  pinMode(MOS6,INPUT);
-  digitalWrite(MOS1,HIGH);  
-  digitalWrite(MOS2,HIGH);  
-  digitalWrite(MOS3,HIGH);  
-  digitalWrite(MOS4,HIGH);  
-  digitalWrite(MOS5,HIGH);  
-  digitalWrite(MOS6,HIGH);  
-
- 
+   pinMode(Y_REF,INPUT); 
+   pinMode(Z_REF,INPUT);
+   pinMode(E0_REF,INPUT);
+   pinMode(E1_REF,INPUT);
+//   pinMode(MOS1,INPUT);
+   pinMode(MOS2,INPUT);
+//   pinMode(MOS3,INPUT);
+   pinMode(MOS4,INPUT);
+//   pinMode(MOS5,INPUT);
+   pinMode(MOS6,INPUT);
+//   digitalWrite(MOS1,HIGH);  
+   digitalWrite(MOS2,HIGH);  
+//   digitalWrite(MOS3,HIGH);  
+   digitalWrite(MOS4,HIGH);  
+//   digitalWrite(MOS5,HIGH);  
+   digitalWrite(MOS6,HIGH);  
+   */
   startMillis = millis();
-  rambo::portEnable(0);
-  rambo::portSetMicroSteps(16);
-  //init digipots
-  digipot::init();
+  Serial.println("1");
 }
-
 void loop()
 {
+//PWM vref
+   TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
+  pinMode(46, OUTPUT);
+  analogWrite(46, 130);
+  pinMode(45, OUTPUT);
+  analogWrite(45, 130);
+  pinMode(44, OUTPUT);
+  analogWrite(44, 130);
+
   //uint8_t a= PINJ;
   //Serial.print(PINJ,BIN);
   //Serial.println("");
@@ -110,6 +130,36 @@ void loop()
     delay(10);
     switch (currentChar)
     {
+      //Read Pin but turn pullups on
+      //Format: Q<pin>
+      //Returns: <pin val>\n
+    case 'Q' : 
+      {
+        if(isDigit(Serial.peek())){
+          pin = Serial.parseInt();
+          pinMode(pin,INPUT);
+          digitalWrite(pin,HIGH);
+          Serial.println(digitalRead(pin));
+          pin = -1;
+        }
+        finished();
+        break; 
+      }
+
+      //Analog Read
+      //Format: A<pin>
+    case 'A' :
+      {
+        if(isDigit(Serial.peek()))
+        {
+          pin = Serial.parseInt();
+          DEBUG_PRINT("Analog reading pin : ", pin);
+          Serial.println(analogRead(pin));
+          pin = -1;
+        }
+        finished();
+        break;
+      }
 
       //Read Port or Pin
       //Format: R<pin> or R<port char>
@@ -122,11 +172,11 @@ void loop()
           DEBUG_PRINT("Reading port : ", port);
           Serial.println(getPin(port));
         }
-        else if(isDigit(Serial.peek()))
-        {
+        else if(isDigit(Serial.peek())){
           pin = Serial.parseInt();
-          DEBUG_PRINT("Reading pin : ", pin);
+          pinMode(pin,INPUT);
           Serial.println(digitalRead(pin));
+          pin = -1;
         }
         finished();
         break; 
@@ -141,6 +191,7 @@ void loop()
         {
           pin = Serial.parseInt();
           DEBUG_PRINT("Writing to pin : ", pin);
+          pinMode(pin,OUTPUT);
           switch (Serial.read()) {
             //High
           case 'H' : 
@@ -157,6 +208,7 @@ void loop()
               break;
             }
           }
+          pin = -1;
         }
         finished();
         break; 
@@ -206,20 +258,6 @@ void loop()
         break;
       }
 
-      //Analog Read
-      //Format: A<pin>
-    case 'A' : 
-      {
-        if(isDigit(Serial.peek()))
-        {
-          pin = Serial.parseInt();
-          DEBUG_PRINT("Analog reading pin : ", pin);
-          Serial.println(analogRead(pin));
-        }
-        finished();
-        break;
-      }
-
       //Set Microsteps
       //Format: U<microsteps>
     case 'U' : 
@@ -229,6 +267,7 @@ void loop()
           pin = Serial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
           rambo::portSetMicroSteps(pin);
+          pin = -1;
         }
         finished();
         break;
@@ -236,13 +275,13 @@ void loop()
 
 
       //Monitor Stepper test
-      //Format: M<time>F<frequency>
+      //Format: M<pin to watch>F<frequency>
     case 'M' : 
       {
         if(isDigit(Serial.peek()))
         {
-          monitorTime = Serial.parseInt();
-          DEBUG_PRINT("Monitoring stepper test time (s) : ", monitorTime);
+          pin = Serial.parseInt();
+          DEBUG_PRINT("Watching pin : ", pin);
           if (Serial.peek() == 'F')
           {
             sampleFrequency = Serial.parseInt();
@@ -250,9 +289,7 @@ void loop()
             period = 1000000/sampleFrequency;
             DEBUG_PRINT("Monitoring every (us) : ", period);
             testStart = millis();
-            lastMicros = micros();
-            DEBUG_PRINT("Starting test", "");
-            uint8_t lastPortSample = B11111111;
+            uint8_t lastPortSample = B11111100;
             for(i=0; i<=4; i++)
             { 
               posCounter[i] = 0; 
@@ -260,14 +297,18 @@ void loop()
             }
             for(i=0; i<=4; i++)
             {
-              for(j = 0; j <= 9; j++) 
+              for(j = 0; j <= 4; j++) 
                 stepperCount[i][j] = 0;
             }
-            while(millis()-testStart <= monitorTime*1000){
+            pinMode(pin,INPUT);
+            digitalWrite(pin,HIGH);
+            while(digitalRead(pin));
+            lastMicros = micros();
+            while(!digitalRead(pin)){
               if ((micros()-lastMicros) >= period) 
               { 
                 lastMicros = micros();
-                uint8_t sample = PINJ;
+                uint8_t sample = PINJ & B11111100;
                 for(i=0; i<=4; i++){
                   if(((lastPortSample ^ sample) & (B00000100<<i)) && consecutiveReads[i] >= DEBOUNCE){
                     posCounter[i]++;
@@ -277,18 +318,18 @@ void loop()
                   consecutiveReads[i]++;
                 }
 
-                lastPortSample = PINJ;
+                lastPortSample = sample;
               }
             }
             DEBUG_PRINT("Ending Test", "");
             for(i=0; i<=4; i++){
-              for(j = 0; j <= 9; j++){
+              for(j = 0; j <= 4; j++){
                 if(j==0){
                   Serial.print("{");
                   Serial.print(stepperCount[i][j]);
                   Serial.print(",");
                 }
-                else if(j==9){
+                else if(j==4){
                   Serial.print(stepperCount[i][j]);
                   Serial.println("}");
                 }
@@ -298,6 +339,7 @@ void loop()
                 }
               }
             }
+            pin = -1;
           }
         }
         finished();
@@ -318,6 +360,7 @@ void loop()
             DEBUG_PRINT("Analog write duty cycle : ", dutyCycle);
             pinMode(pin,OUTPUT); 
             analogWrite(pin,dutyCycle);
+            pin = -1;
           }
         }
         finished();
@@ -325,7 +368,7 @@ void loop()
       }
 
       //Clamp board
-      //Format: C<steps>F<frequency><Direction - D or U>
+      //Format: C<steps>F<frequency><Direction - D or U>P<pin to signal>
     case 'C' : 
       {
         if(isDigit(Serial.peek()))
@@ -357,6 +400,12 @@ void loop()
             }
             rambo::portEnable(1);
             stepsToHome = 0;
+            if(Serial.peek() == 'P'){
+              pin = Serial.parseInt();
+              pinMode(pin,OUTPUT);
+              digitalWrite(pin,HIGH);
+              delay(20);
+            }
             lastMicros = micros();
             while(stepsToHome <= stepCount){
               if ((micros()-lastMicros) >= period) 
@@ -366,13 +415,17 @@ void loop()
                 stepsToHome++;
               }
             }
+            if(pin != -1){
+              delay(20);
+              digitalWrite(pin, LOW);
+              pin = -1;
+            }
           }
         }
         finished();
         break;
       }
     default :
-      Serial.println("Unknown command"); 
       break;
     }
   }
@@ -408,6 +461,8 @@ uint8_t getPin(char c){
 void finished(void){
   Serial.println("ok");
 }
+
+
 
 
 
