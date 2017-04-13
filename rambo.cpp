@@ -5,6 +5,8 @@
 
 #ifdef BOARD_RAMBO
 
+#define MainSerial Serial
+
 void rambo::init(){
   rambo::portEnable(0);
   rambo::portSetMicroSteps(16);

@@ -1,36 +1,38 @@
 #include <Arduino.h>
 #include "pins.h"
-#include "rambo.h"
-#include "digipot.h"
+#include "minirambo.h"
+//#include "digipot.h"
 
-#ifdef BOARD_RAMBO
+#ifdef BOARD_MINIRAMBO
 
-void rambo::init(){
-  rambo::portEnable(0);
-  rambo::portSetMicroSteps(16);
+#define MainSerial Serial
+
+void minirambo::init(){
+  minirambo::portEnable(0);
+  minirambo::portSetMicroSteps(16);
 
   //set outputs
-  DDRA = B11111000; //enable
-  DDRL = B11000111; //direction
-  DDRC = B00011111; //step
+  DDRA = B11110000; //enable X-PA7, Y-PA6, Z-PA5, E0-PA4, E1-PA3
+  DDRL = B01000111; //direction E1-PL7, E0-PL6, Z-PL2, X-PL1, Y-PL0
+  DDRC = B00001111; //step E1-PC4, E0-PC3, Z-PC2, Y-PC1, X-PC0
 
   //set inputs
-  DDRJ = B00000000; //stepper monitors
+  //DDRJ = B00000000; //stepper monitors
 
   pinMode(X_MS1_PIN, OUTPUT); //microstep pin
   pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
   pinMode(Z_MS1_PIN, OUTPUT); //microstep pin
   pinMode(E0_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS1_PIN, OUTPUT); //microstep pin
+  //pinMode(E1_MS1_PIN, OUTPUT); //microstep pin
   pinMode(X_MS2_PIN, OUTPUT); //microstep pin
   pinMode(Y_MS2_PIN, OUTPUT); //microstep pin
   pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
   pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
+  //pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
 
   //pinMode(POWER_PIN, OUTPUT); //powersupply pin
 
-  digipot::init();
+  //digipot::init();
 
   /*
   pinMode(X_REF,INPUT);
@@ -53,26 +55,26 @@ void rambo::init(){
    */
 }
 
-void rambo::portStep(){
-  PORTC = B11111111;
+void minirambo::portStep(){
+  PORTC |= B00001111; //pin mask high
   delayMicroseconds(1);
-  PORTC = B11100000;
+  PORTC &= ~(B00001111); //pin mask low
   return;
 }
 
-void rambo::portDirection(byte dir){
-  if(dir)PORTL = B11111111;
-  else PORTL = B00111000;
+void minirambo::portDirection(byte dir){
+  if(dir)PORTL |=  B01000111;  //pin mask high
+  else PORTL &= ~(B01000111); //pin mask low
   return;
 }
 
-void rambo::portEnable(byte en){
-  if(en)PORTA = B00000000;
-  else PORTA = B11111000;
+void minirambo::portEnable(byte en){
+  if(en)PORTA &= ~(B11110000); //pin mask low - enable a4982
+  else PORTA |= B11110000; //pin mask high - disable a4982
   return;
 }
 
-void rambo::portSetMicroSteps(byte ms){
+void minirambo::portSetMicroSteps(byte ms){
   switch(ms) {
   case 1 : 
     {
@@ -84,8 +86,8 @@ void rambo::portSetMicroSteps(byte ms){
       digitalWrite(Z_MS2_PIN, LOW);
       digitalWrite(E0_MS1_PIN, LOW);
       digitalWrite(E0_MS2_PIN, LOW);
-      digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, LOW);
+      //digitalWrite(E1_MS1_PIN, LOW);
+      //digitalWrite(E1_MS2_PIN, LOW);
       break;
     }
   case 2 : 
@@ -98,8 +100,8 @@ void rambo::portSetMicroSteps(byte ms){
       digitalWrite(Z_MS2_PIN, LOW);
       digitalWrite(E0_MS1_PIN, HIGH);
       digitalWrite(E0_MS2_PIN, LOW);
-      digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, LOW);
+      //digitalWrite(E1_MS1_PIN, HIGH);
+      //digitalWrite(E1_MS2_PIN, LOW);
       break;   
     }
   case 4 : 
@@ -112,8 +114,8 @@ void rambo::portSetMicroSteps(byte ms){
       digitalWrite(Z_MS2_PIN, HIGH);
       digitalWrite(E0_MS1_PIN, LOW);
       digitalWrite(E0_MS2_PIN, HIGH);
-      digitalWrite(E1_MS1_PIN, LOW);
-      digitalWrite(E1_MS2_PIN, HIGH);
+      //digitalWrite(E1_MS1_PIN, LOW);
+      //digitalWrite(E1_MS2_PIN, HIGH);
       break;  
     }
   case 16 : 
@@ -126,15 +128,15 @@ void rambo::portSetMicroSteps(byte ms){
       digitalWrite(Z_MS2_PIN, HIGH);
       digitalWrite(E0_MS1_PIN, HIGH);
       digitalWrite(E0_MS2_PIN, HIGH);
-      digitalWrite(E1_MS1_PIN, HIGH);
-      digitalWrite(E1_MS2_PIN, HIGH);
+      //digitalWrite(E1_MS1_PIN, HIGH);
+      //digitalWrite(E1_MS2_PIN, HIGH);
       break;   
     }
 
   } 
 }
 
-void rambo::sdinit() {}
+void minirambo::sdinit() {}
 void spiflash_init() {}
 
 #endif

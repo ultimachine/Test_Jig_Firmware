@@ -1,9 +1,9 @@
-#ifndef RAMBO_H
-#define RAMBO_H
+#ifndef MINIRAMBO_H
+#define MINIRAMBO_H
 
 #include <Arduino.h>
 
-#ifdef BOARD_RAMBO
+#ifdef BOARD_MINIRAMBO
 
 #define MainSerial Serial
 
@@ -18,8 +18,8 @@
 #define Z_MS2_PIN 67
 #define E0_MS1_PIN 65
 #define E0_MS2_PIN 66
-#define E1_MS1_PIN 63
-#define E1_MS2_PIN 64
+//#define E1_MS1_PIN 63
+//#define E1_MS2_PIN 64
 #define DIGIPOTSS_PIN 38
 #define X_REF A8
 #define Y_REF A6
@@ -41,7 +41,7 @@
 #define MOS6 30 //PC7
 */
 
-namespace rambo{
+namespace minirambo{
   void init();
   void portStep();
   void portDirection(byte dir);

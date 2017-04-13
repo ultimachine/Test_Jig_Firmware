@@ -1,5 +1,6 @@
 #include "pins.h"
 #include "rambo.h"
+#include "minirambo.h"
 #include "archim.h"
 #include <SPI.h>
 
@@ -20,11 +21,12 @@
 #define UP 0
 #define DOWN 1
 
-#ifdef BOARD_ARCHIM
+#if defined( BOARD_ARCHIM )
 namespace board = archim;
-#endif
-#ifdef BOARD_RAMBO
+#elif defined( BOARD_RAMBO )
 namespace board = rambo;
+#elif defined( BOARD_MINIRAMBO )
+namespace board = minirambo;
 #endif
 
 
