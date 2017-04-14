@@ -7,9 +7,22 @@
 
 #define MainSerial Serial
 
+void minirambo::setMotorCurrent(byte x)
+{
+//PWM vref
+  TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
+  pinMode(46, OUTPUT);
+  analogWrite(46, x);
+  pinMode(45, OUTPUT);
+  analogWrite(45, x);
+  pinMode(44, OUTPUT);
+  analogWrite(44, x);
+}
+
 void minirambo::init(){
   minirambo::portEnable(0);
   minirambo::portSetMicroSteps(16);
+  minirambo::setMotorCurrent(130);
 
   //set outputs
   DDRA = B11110000; //enable X-PA7, Y-PA6, Z-PA5, E0-PA4, E1-PA3

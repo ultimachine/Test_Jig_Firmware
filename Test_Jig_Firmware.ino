@@ -1,6 +1,7 @@
 #include "pins.h"
 #include "rambo.h"
 #include "minirambo.h"
+#include "einsyrambo.h"
 #include "archim.h"
 #include <SPI.h>
 
@@ -27,6 +28,8 @@ namespace board = archim;
 namespace board = rambo;
 #elif defined( BOARD_MINIRAMBO )
 namespace board = minirambo;
+#elif defined( BOARD_EINSYRAMBO )
+namespace board = einsyrambo;
 #endif
 
 
@@ -57,7 +60,9 @@ void setup()
   pinMode(START_PIN, INPUT_PULLUP); //Start Pin pullups  
   #endif
 
+#ifdef BOARD_ARCHIM
   while(!MainSerial) { }
+#endif
 
   MainSerial.println("1");
 }
@@ -447,9 +452,6 @@ uint8_t getPin(char c){
 void finished(void){
   MainSerial.println("ok");
 }
-
-
-
 
 
 
