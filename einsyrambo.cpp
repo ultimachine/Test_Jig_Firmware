@@ -82,7 +82,7 @@ void tmc2130_chopconf(uint8_t cs, bool extrapolate256 = 1, uint16_t microstep_re
 
 void tmc2130_init()
 {
-  uint8_t current[4] = { 23, 23, 23, 23 };
+  uint8_t current[4] = { 31, 31, 31, 31 };
 
   digitalWrite(X_TMC2130_CS, HIGH);
   digitalWrite(Y_TMC2130_CS, HIGH);
@@ -110,9 +110,9 @@ void einsyrambo::setMotorCurrent(uint8_t x)
 {
 //PWM vref
   TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
-  analogWrite(46, 130);
-  analogWrite(45, 130);
-  analogWrite(44, 130);
+  analogWrite(46, x);
+  analogWrite(45, x);
+  analogWrite(44, x);
 }
 
 void einsyrambo::init(){
