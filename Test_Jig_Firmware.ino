@@ -414,11 +414,54 @@ void loop()
       finished();
       break;
 
+    // Trinamic TMC2130 Set Diags Low Debug Test
+    case 'Z' :
+      diag0_low();
+      finished();
+      break;
+
+      // Trinamic TMC2130 Set Diag State
+      // T0 diag0 push_pull
+      // T1 diag1_push_pull
+      // T2 all diags active low
+    case 'T' :
+      {
+      int diag_state=2;
+      uint8_t cs[4] = { X_TMC2130_CS, Y_TMC2130_CS, Z_TMC2130_CS, E0_TMC2130_CS };
+      if( isDigit( MainSerial.peek() ) ) diag_state = MainSerial.parseInt();
+
+      switch  ( diag_state ) {
+       case 0: // T0 diag0 push_pull
+         //MainSerial.println("diagstate: 0");
+         for(int i=0;i<4;i++) tmc2130_write(cs[i],0x0,0,0,0b00010000,0b10000000); //gconf address=0x0, bit12_diag0_int_pushpull bit7_diag0_stall
+         break;
+       case 1: // T1 diag1_push_pull
+         //MainSerial.println("diagstate: 1");
+         for(int i=0;i<4;i++) tmc2130_write(cs[i],0x0,0,0,0b00100001,0); //gconf address=0x0, bit13_diag1_pushpull bit8_diag1_stall
+         break;
+       case 2: // T2 all diags active low
+         //MainSerial.println("diagstate: 2");
+         for(int i=0;i<4;i++) tmc2130_write(cs[i],0x0,0,0,0,1); //address=0x0 GCONF EXT VREF
+         break;
+      }
+      finished();
+      break;
+    }
     default :
       break;
     }
   }
 }
+
+void diag0_low()
+{
+  uint8_t cs[4] = { X_TMC2130_CS, Y_TMC2130_CS, Z_TMC2130_CS, E0_TMC2130_CS };
+  for(int i=0;i<4;i++)
+  {
+    tmc2130_write(cs[i],0x0,0,0,0b00010000,0b10000000); //gconf address=0x0, bit12_diag0_int_pushpull bit7_diag0_stall
+  }
+}
+
 
 /*
 uint8_t getPin(char c){
