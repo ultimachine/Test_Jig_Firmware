@@ -72,6 +72,7 @@ void loop()
   unsigned long stepsToHome = 0;
   unsigned long lastMicros;
   static char currentChar;
+  uint8_t current;
 
   static unsigned long startMillis = millis();
 
@@ -239,6 +240,20 @@ void loop()
           uint8_t pin = MainSerial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
           board::portSetMicroSteps(pin);
+        }
+        finished();
+        break;
+      }
+
+      //Set Motor Current
+      //Format: V<255>
+    case 'V' :
+      {
+        if(isDigit(Serial.peek()))
+        {
+          current = Serial.parseInt();
+          DEBUG_PRINT("setting motor current: ", current);
+          board::setMotorCurrent(current);
         }
         finished();
         break;
