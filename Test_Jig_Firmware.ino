@@ -71,15 +71,13 @@ void loop()
 {
   unsigned long stepsToHome = 0;
   unsigned long lastMicros;
-  static char currentChar;
   uint8_t current;
-
-  static unsigned long startMillis = millis();
 
   //uint8_t a= PINJ;
   //MainSerial.print(PINJ,BIN);
   //MainSerial.println("");
   #ifdef START_PIN
+  static unsigned long startMillis = millis();
   if(!digitalRead(START_PIN))
   {
     startReads++;
