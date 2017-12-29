@@ -38,6 +38,21 @@
 #define Z_TMC2130_CS 67
 #define E0_TMC2130_CS 66
 
+#define SPIFLASH_CS 32 //PC5, P2 header pin1
+
+//#define EINSY01
+#ifdef EINSY01 //Also compatible with MiniRambo 1.3a
+  // EINY 0.1- EINSY-0.3
+  #define SDSS              53 // EINY 0-.1 - EINSY 0.3
+  #define LCD_PINS_ENABLE 18
+  #define LCD_PINS_D4     19
+#else
+  // EINSY 0.4+
+  #define SDSS                77 // EINSY 0.4
+  #define LCD_PINS_ENABLE 61
+  #define LCD_PINS_D4 59
+#endif
+
 
 //#define ENDSTOP_PIN 15
 //#define START_PIN 14

@@ -3,6 +3,7 @@
 #include "einsyrambo.h"
 #include <SPI.h>
 
+#include <SPIFlash.h>
 #ifdef BOARD_EINSYRAMBO
 
 #define MainSerial Serial
@@ -134,6 +135,9 @@ void einsyrambo::init(){
   pinMode(X_MAX_PIN,INPUT_PULLUP);
   pinMode(Y_MAX_PIN,INPUT_PULLUP);
   pinMode(Z_MAX_PIN,INPUT_PULLUP);
+
+  pinMode(SPIFLASH_CS,OUTPUT);
+  digitalWrite(SPIFLASH_CS,HIGH);
 }
 
 void einsyrambo::portStep(){
@@ -165,6 +169,23 @@ void einsyrambo::portSetMicroSteps(byte ms){
 }
 
 void einsyrambo::sdinit() {}
-void spiflash_init() {}
+
+// Read JEDEC ID and do a simple erase/write/read test
+void spiflash_init()
+{
+  SPIFlash spiflash(SPIFLASH_CS);
+  spiflash.begin();
+  spiflash.setClock(4000000);
+  //MainSerial.print("JEDEC ID: ");
+  MainSerial.println( spiflash.getJEDECID() );
+
+  MainSerial.println("ok"); //2 responses
+
+  spiflash.eraseSector(0);
+  spiflash.writeByte(0, 42);
+  MainSerial.println( spiflash.readByte(0) );
+}
+
+
 
 #endif
