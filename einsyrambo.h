@@ -101,6 +101,7 @@ namespace einsyrambo{
 
 void spiflash_init();
 void tmc2130_write(uint8_t chipselect, uint8_t address,uint8_t wval1,uint8_t wval2,uint8_t wval3,uint8_t wval4);
+void spiflash_write(byte data);
 
 #endif
 

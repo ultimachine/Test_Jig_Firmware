@@ -417,7 +417,13 @@ void loop()
        //SPI FLASH INIT - RETURNS MFG DEVICE ID: 20
       //Format: S
     case 'S' :
-      spiflash_init();
+      if(isDigit(MainSerial.peek()))
+      {
+        byte data = MainSerial.parseInt();
+        spiflash_write(data); //does a write then reads out the result
+      } else {
+        spiflash_init();
+      }
       finished();
       break;
 

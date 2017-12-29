@@ -168,21 +168,32 @@ void einsyrambo::portSetMicroSteps(byte ms){
   delay(20);
 }
 
-void einsyrambo::sdinit() {}
+void einsyrambo::sdinit() {
+  SPI.end();
+  pinMode(MISO,INPUT_PULLUP);
+  MainSerial.print("MISO: ");
+  MainSerial.println(digitalRead(MISO));
+  digitalWrite(SDSS,LOW);
+  MainSerial.print("MISO: ");
+  MainSerial.println(digitalRead(MISO));
+  digitalWrite(SDSS,HIGH);
+}
+
+SPIFlash spiflash(SPIFLASH_CS);
 
 // Read JEDEC ID and do a simple erase/write/read test
 void spiflash_init()
 {
-  SPIFlash spiflash(SPIFLASH_CS);
   spiflash.begin();
   spiflash.setClock(4000000);
   //MainSerial.print("JEDEC ID: ");
   MainSerial.println( spiflash.getJEDECID() );
+}
 
-  MainSerial.println("ok"); //2 responses
-
+void spiflash_write(byte data)
+{
   spiflash.eraseSector(0);
-  spiflash.writeByte(0, 42);
+  spiflash.writeByte(0, data); //addr,data
   MainSerial.println( spiflash.readByte(0) );
 }
 
