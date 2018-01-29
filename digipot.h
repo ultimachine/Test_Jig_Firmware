@@ -7,5 +7,6 @@ namespace digipot{
   void write(byte address, byte value);
   void init();
   void setVoltage(byte driver, byte current);
+  void setMotorCurrent(uint8_t current);
 }
 #endif

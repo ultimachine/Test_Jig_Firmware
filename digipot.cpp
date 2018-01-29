@@ -28,4 +28,13 @@ void digipot::init() //Initialize Digipot Motor Current
     setVoltage(i,digipot_motor_current[i]);
 }
 
+void digipot::setMotorCurrent(uint8_t current) //Set Digipot Motor Current
+{
+
+  SPI.begin();
+  pinMode(DIGIPOTSS_PIN, OUTPUT);
+  for(byte i=0; i<=4; i++)
+    setVoltage(i,current);
+}
+
 

@@ -94,6 +94,7 @@ void loop()
   //uint8_t a= PINJ;
   //Serial.print(PINJ,BIN);
   //Serial.println("");
+  uint8_t current;
   if(!digitalRead(START_PIN))
   {
     startReads++;
@@ -229,6 +230,20 @@ void loop()
           pin = Serial.parseInt();
           DEBUG_PRINT("setting microsteps : ", pin);
           rambo::portSetMicroSteps(pin);
+        }
+        finished();
+        break;
+      }
+
+      //Set Digital Trimpot
+      //Format: V<255>
+    case 'V' : 
+      {
+        if(isDigit(Serial.peek()))
+        {
+          current = Serial.parseInt();
+          DEBUG_PRINT("setting digital trimpot: ", current);
+          digipot::setMotorCurrent(current);
         }
         finished();
         break;
