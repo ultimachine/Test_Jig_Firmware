@@ -4,6 +4,8 @@
 #include "Arduino_Due_SD_HSCMI.h"
 #include <SPI.h>
 
+#include <SPIFlash.h>
+
 #ifdef BOARD_ARCHIM
 
 #ifdef SDHSMCI_SUPPORT
@@ -278,5 +280,32 @@ void spiflash_write_byte(long address, uint8_t value)
   SPI.transfer(SPIFLASH_CS, value); // Value to Write
 }
 
-#endif // BOARD_ARCHIM
+void archim::setMotorCurrent(byte x)
+{
+  analogWrite(MOTOR_CURRENT_PWM_X_PIN,x);
+  analogWrite(MOTOR_CURRENT_PWM_Y_PIN,x);
+  analogWrite(MOTOR_CURRENT_PWM_Z_PIN,x);
+  analogWrite(MOTOR_CURRENT_PWM_E0_PIN,x);
+  analogWrite(MOTOR_CURRENT_PWM_E1_PIN,x);
+}
 
+SPIFlash spiflash(SPIFLASH_CS);
+
+// Read JEDEC ID and do a simple erase/write/read test
+void spiflash_init_new()
+{
+  spiflash.begin();
+  spiflash.setClock(4000000);
+  //MainSerial.print("JEDEC ID: ");
+  MainSerial.println( spiflash.getJEDECID() );
+}
+
+void spiflash_write(byte data)
+{
+  spiflash.eraseSector(0);
+  spiflash.writeByte(0, data); //addr,data
+  MainSerial.println( spiflash.readByte(0) );
+}
+
+
+#endif // BOARD_ARCHIM

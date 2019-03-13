@@ -67,6 +67,10 @@ void setup()
   MainSerial.println("1");
 }
 
+void finished(void){
+  MainSerial.println("ok");
+}
+
 void loop()
 {
   unsigned long stepsToHome = 0;
@@ -433,6 +437,7 @@ void loop()
       finished();
       break;
 
+#ifdef X_TMC2130_CS
     // Trinamic TMC2130 Set Diags Low Debug Test
     case 'Z' :
       diag0_low();
@@ -466,6 +471,7 @@ void loop()
       finished();
       break;
     }
+#endif //X_TMC2130_CS
     default :
       break;
     }
@@ -474,13 +480,14 @@ void loop()
 
 void diag0_low()
 {
+  #ifdef X_TMC2130_CS
   uint8_t cs[4] = { X_TMC2130_CS, Y_TMC2130_CS, Z_TMC2130_CS, E0_TMC2130_CS };
   for(int i=0;i<4;i++)
   {
     tmc2130_write(cs[i],0x0,0,0,0b00010000,0b10000000); //gconf address=0x0, bit12_diag0_int_pushpull bit7_diag0_stall
   }
+  #endif
 }
-
 
 /*
 uint8_t getPin(char c){
@@ -510,13 +517,3 @@ uint8_t getPin(char c){
   }
 }
 */
-
-void finished(void){
-  MainSerial.println("ok");
-}
-
-
-
-
-
-

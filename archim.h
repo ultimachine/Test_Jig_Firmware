@@ -55,6 +55,8 @@
 #define MOTOR_CURRENT_PWM_E0_PIN   3 //PC28 REF3 TIOA7
 #define MOTOR_CURRENT_PWM_E1_PIN  11 //PD7  REF4 TIOA8
 
+#define SPIFLASH_CS 86 //77  // Chip Select PIN
+
 namespace archim{
   void init();
   void portStep();
@@ -62,13 +64,17 @@ namespace archim{
   void portEnable(byte en);
   void portSetMicroSteps(byte ms);
   void sdinit();
+  void setMotorCurrent(byte x);
 }
 
 void spiflash_init();
 uint8_t spiflash_read_byte(long address);
 void spiflash_write_byte(long address, uint8_t value);
 
-#endif
+void tmc2130_write(uint8_t chipselect, uint8_t address,uint8_t wval1,uint8_t wval2,uint8_t wval3,uint8_t wval4);
+
+void spiflash_write(byte data);
 
 #endif
 
+#endif
