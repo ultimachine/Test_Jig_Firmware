@@ -1,6 +1,6 @@
 #include "pins.h"
 
-#ifdef BOARD_ARCHIM
+#if defined(BOARD_ARCHIM) || defined(BOARD_ARCHIM2)
 
 #include "Arduino_Due_SD_HSCMI.h"
 #include <SD_HSMCI.h>

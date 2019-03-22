@@ -3,6 +3,7 @@
 #include "minirambo.h"
 #include "einsyrambo.h"
 #include "archim.h"
+#include "archim2.h"
 #include <SPI.h>
 
 #ifdef SDHSMCI_SUPPORT
@@ -24,6 +25,8 @@
 
 #if defined( BOARD_ARCHIM )
 namespace board = archim;
+#elif defined( BOARD_ARCHIM2 )
+namespace board = archim2;
 #elif defined( BOARD_RAMBO )
 namespace board = rambo;
 #elif defined( BOARD_MINIRAMBO )

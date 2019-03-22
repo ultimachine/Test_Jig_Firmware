@@ -15,7 +15,7 @@ Licence: GPL
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#ifdef BOARD_ARCHIM
+#if defined(BOARD_ARCHIM) || defined(BOARD_ARCHIM2)
 
 #define SD_DEBUG false
 
