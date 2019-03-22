@@ -5,6 +5,8 @@
 
 #ifdef BOARD_EINSYRAMBO
 
+#define SPIFLASH_SUPPORT
+
 #define MainSerial Serial
 
 // EINSY RAMBO
@@ -106,5 +108,3 @@ void spiflash_write(byte data);
 #endif
 
 #endif
-
-

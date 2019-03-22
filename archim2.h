@@ -7,6 +7,7 @@
 #define MainSerial SerialUSB
 
 #define SDHSMCI_SUPPORT
+#define SPIFLASH_SUPPORT
 
 #define X_STEP_PIN         40 //PC8 STEP1
 #define X_DIR_PIN          59 //PA4 DIR1 (Analog Input 5)

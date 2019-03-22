@@ -423,6 +423,7 @@ void loop()
       }
        //SPI FLASH INIT - RETURNS MFG DEVICE ID: 20
       //Format: S
+#ifdef SPIFLASH_SUPPORT
     case 'S' :
       if(isDigit(MainSerial.peek()))
       {
@@ -433,7 +434,7 @@ void loop()
       }
       finished();
       break;
-
+#endif
       // Test SD Card
     case 'D' :
       board::sdinit();
