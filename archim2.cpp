@@ -18,23 +18,6 @@ void archim2::init()
   archim2::portEnable(0);
   archim2::portSetMicroSteps(16);
 
-  pinMode(X_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(Y_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(Z_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(E0_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS1_PIN, OUTPUT); //microstep pin
-  pinMode(X_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(Y_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(Z_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(E0_MS2_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS2_PIN, OUTPUT); //microstep pin
-
-  pinMode(X_MS3_PIN, OUTPUT); //microstep pin
-  pinMode(Y_MS3_PIN, OUTPUT); //microstep pin
-  pinMode(Z_MS3_PIN, OUTPUT); //microstep pin
-  pinMode(E0_MS3_PIN, OUTPUT); //microstep pin
-  pinMode(E1_MS3_PIN, OUTPUT); //microstep pin
-
   pinMode(X_ENABLE_PIN, OUTPUT); //microstep pin
   pinMode(Y_ENABLE_PIN, OUTPUT); //microstep pin
   pinMode(Z_ENABLE_PIN, OUTPUT); //microstep pin
@@ -52,12 +35,6 @@ void archim2::init()
   pinMode(Z_DIR_PIN, OUTPUT); //microstep pin
   pinMode(E0_DIR_PIN, OUTPUT); //microstep pin
   pinMode(E1_DIR_PIN, OUTPUT); //microstep pin
-
-  analogWrite(MOTOR_CURRENT_PWM_X_PIN,92);
-  analogWrite(MOTOR_CURRENT_PWM_Y_PIN,92);
-  analogWrite(MOTOR_CURRENT_PWM_Z_PIN,92);
-  analogWrite(MOTOR_CURRENT_PWM_E0_PIN,92);
-  analogWrite(MOTOR_CURRENT_PWM_E1_PIN,92);
 
   pinMode(X_MIN_PIN,INPUT_PULLUP);
   pinMode(Y_MIN_PIN,INPUT_PULLUP);
@@ -119,77 +96,9 @@ void archim2::portEnable(byte en){
   }
 }
 
-void set_modes0(byte msmode)
-{
-      digitalWrite( X_MS1_PIN, msmode);
-      digitalWrite( Y_MS1_PIN, msmode);
-      digitalWrite( Z_MS1_PIN, msmode);
-      digitalWrite(E0_MS1_PIN, msmode);
-      digitalWrite(E1_MS1_PIN, msmode);
-}
-
-void set_modes1(byte msmode)
-{
-      digitalWrite( X_MS2_PIN, msmode);
-      digitalWrite( Y_MS2_PIN, msmode);
-      digitalWrite( Z_MS2_PIN, msmode);
-      digitalWrite(E0_MS2_PIN, msmode);
-      digitalWrite(E1_MS2_PIN, msmode);
-}
-
-void set_modes2(byte msmode)
-{
-      digitalWrite( X_MS3_PIN, msmode);
-      digitalWrite( Y_MS3_PIN, msmode);
-      digitalWrite( Z_MS3_PIN, msmode);
-      digitalWrite(E0_MS3_PIN, msmode);
-      digitalWrite(E1_MS3_PIN, msmode);
-}
-
-/* drv8825 microstep modes table
-mode2, mode1, mode0, step mode
-0 0 0 Full step (2-phase excitation) with 71% current
-0 0 1 1/2 step (1-2 phase excitation)
-0 1 0 1/4 step (W1-2 phase excitation)
-0 1 1 8 microsteps/step
-1 0 0 16 microsteps/step
-1 0 1 32 microsteps/step
-1 1 0 32 microsteps/step
-1 1 1 32 microsteps/step */
 void archim2::portSetMicroSteps(byte ms)
 {
- switch(ms) {
-  case 1: 
-      set_modes2(LOW);
-      set_modes1(LOW);
-      set_modes0(LOW);
-      break;
-  case 2: 
-      set_modes2(LOW);
-      set_modes1(LOW);
-      set_modes0(HIGH);
-      break;   
-  case 4:
-      set_modes2(LOW);
-      set_modes1(HIGH);
-      set_modes0(LOW);
-      break;
-  case 8: 
-      set_modes2(LOW);
-      set_modes1(HIGH);
-      set_modes0(HIGH);
-      break;
-  case 16: 
-      set_modes2(HIGH);
-      set_modes1(LOW);
-      set_modes0(LOW);
-      break;
-  case 32: 
-      set_modes2(HIGH);
-      set_modes1(HIGH);
-      set_modes0(HIGH);
-      break;
- }
+ 
 }
 
 void archim2::sdinit() {
@@ -282,11 +191,7 @@ void spiflash_write_byte(long address, uint8_t value)
 
 void archim2::setMotorCurrent(byte x)
 {
-  analogWrite(MOTOR_CURRENT_PWM_X_PIN,x);
-  analogWrite(MOTOR_CURRENT_PWM_Y_PIN,x);
-  analogWrite(MOTOR_CURRENT_PWM_Z_PIN,x);
-  analogWrite(MOTOR_CURRENT_PWM_E0_PIN,x);
-  analogWrite(MOTOR_CURRENT_PWM_E1_PIN,x);
+
 }
 
 SPIFlash spiflash(SPIFLASH_CS);
