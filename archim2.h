@@ -4,6 +4,10 @@
 
 #ifdef BOARD_ARCHIM2
 
+#ifndef __SAM3X8E__
+  #error "Oops! Select 'Archim' in 'Tools > Board.'"
+#endif
+
 #define MainSerial SerialUSB
 
 #define SDHSMCI_SUPPORT

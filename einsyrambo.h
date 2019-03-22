@@ -5,6 +5,10 @@
 
 #ifdef BOARD_EINSYRAMBO
 
+#ifndef __AVR_ATmega2560__
+  #error "Oops!  Make sure you have 'Arduino Mega 2560' or 'Rambo' selected from the 'Tools -> Boards' menu."
+#endif
+
 #define SPIFLASH_SUPPORT
 
 #define MainSerial Serial
