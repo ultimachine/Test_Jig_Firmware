@@ -47,7 +47,7 @@ namespace rambo{
   void portDirection(byte dir);
   void portEnable(byte en);
   void portSetMicroSteps(byte ms);
-
+  void setMotorCurrent(uint8_t current);
   void sdinit();
 }
 

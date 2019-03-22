@@ -136,6 +136,11 @@ void rambo::portSetMicroSteps(byte ms){
   } 
 }
 
+void rambo::setMotorCurrent(uint8_t current)
+{
+  digipot::setMotorCurrent(current);
+}
+
 void rambo::sdinit() {}
 void spiflash_init() {}
 
