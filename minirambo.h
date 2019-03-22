@@ -47,6 +47,7 @@ namespace minirambo{
   void portDirection(byte dir);
   void portEnable(byte en);
   void portSetMicroSteps(byte ms);
+  void setMotorCurrent(byte x);
 
   void sdinit();
 }
