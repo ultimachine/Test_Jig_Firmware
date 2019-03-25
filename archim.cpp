@@ -4,7 +4,7 @@
 #include "Arduino_Due_SD_HSCMI.h"
 #include <SPI.h>
 
-#include <SPIFlash.h>
+#include <SPIFlash.h> //SPIMemory by Prajwal Bhattaram Version 3.2.1
 
 #ifdef BOARD_ARCHIM
 

@@ -1,20 +1,22 @@
-#include <Arduino.h>
 #include "pins.h"
-#include "archim2.h"
-#include "Arduino_Due_SD_HSCMI.h"
-#include <SPI.h>
-
-#include <SPIFlash.h>
 
 #ifdef BOARD_ARCHIM2
+
+#ifdef HAVE_TMC2130_DRIVERS
+  #include "tmc2130.h"
+#endif
 
 #ifdef SDHSMCI_SUPPORT
   #include "Arduino_Due_SD_HSCMI.h"
   #include <SD_HSMCI.h>
 #endif
 
+#include <SPI.h>
+#include <SPIFlash.h>
+
 void archim2::init()
 {
+  tmc2130_init();
   archim2::portEnable(0);
   archim2::portSetMicroSteps(16);
 
