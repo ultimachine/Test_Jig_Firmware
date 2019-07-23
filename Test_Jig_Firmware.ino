@@ -3,6 +3,7 @@
 #include "minirambo.h"
 #include "einsyrambo.h"
 #include "archim.h"
+#include "RCTiming_capacitance_meter_opendrain4.h"
 #include <SPI.h>
 
 #ifdef SDHSMCI_SUPPORT
@@ -69,7 +70,8 @@ void setup()
 
 void loop()
 {
-  unsigned long stepsToHome = 0;
+  //unsigned 
+  long stepsToHome = 0;
   unsigned long lastMicros;
   uint8_t current;
 
@@ -144,6 +146,43 @@ void loop()
         }
         finished();
         break; 
+      }
+
+      //Read nanoFarads on Pin
+      //Format: N<pin>R<pullup-ohms>
+      //Returns: <pin val>\n
+    case 'N' : 
+      {
+        if(isDigit(MainSerial.peek()))
+        {
+          float pullupOhms = 3800.0F; //Ohms
+          uint8_t pin = MainSerial.parseInt();
+          DEBUG_PRINT("nanoFarads on pin : ", pin);
+          if(MainSerial.peek() == 'R')
+          {
+            pullupOhms = MainSerial.parseInt();
+            DEBUG_PRINT("nanoFarads from (RC) resistance : ", pullupOhms);
+          }
+          MainSerial.println( (long)nanoFaradsOnPin(pin, pullupOhms) );
+        }
+        finished();
+        break;
+      }
+
+      //Read rise time on Pin
+      //Format: X<pin>
+      //Returns: <microseconds-until-high>\n
+    case 'X' : 
+      {
+        if(isDigit(MainSerial.peek()))
+        {
+          float pullupOhms = 3800.0F; //Ohms
+          uint8_t pin = MainSerial.parseInt();
+          DEBUG_PRINT("Rise time in (micros) on pin : ", pin);
+          MainSerial.println( readDigitalPullupRiseTime(pin) );
+        }
+        finished();
+        break;
       }
 
       //Write Pin
