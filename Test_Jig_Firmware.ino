@@ -5,6 +5,7 @@
 #include "archim.h"
 #include "RCTiming_capacitance_meter_opendrain4.h"
 #include <SPI.h>
+#include <ArduinoUniqueID.h>
 
 #ifdef SDHSMCI_SUPPORT
   #include <SD_HSMCI.h>
@@ -267,6 +268,20 @@ void loop()
         break;
       }
       */
+
+      //Read Unique ID
+    case 'I' : 
+      {
+        for (size_t i = 0; i < UniqueIDsize; i++)
+        {
+          if (UniqueID[i] < 0x10)
+            Serial.print("0");
+          Serial.print(UniqueID[i], HEX);
+        }
+        Serial.println();
+        finished();
+        break; 
+      }
 
       //Set Microsteps
       //Format: U<microsteps>
